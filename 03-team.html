@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Team · Riyadh Tower · External Reference</title>
+<link rel="stylesheet" href="css/style.css" />
+<style>
+  /* =====================================================================
+     CHAPTER 03 · TEAM
+     01 The Firm  (intro + interactive portfolio with full-screen lightbox)
+     02 The Team  (connectored org chart, click a node for its roster)
+     ===================================================================== */
+
+  /* ---------- The Firm ---------- */
+  #firm { padding-top: 44px !important; }
+  #firm .eyebrow { margin-bottom: 10px; }
+  #firm h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); margin-bottom: 10px; }
+  #firm .lead { margin: 0; font-size: 0.96rem; max-width: 84ch; }
+  .pfwrap { max-width: 1080px; margin: 22px auto 0; width: 100%; }
+
+  .pf-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 26px; }
+  .pf-stat { border-left: 2px solid var(--green); padding-left: 14px; }
+  .pf-stat .v { font-family: var(--serif); font-size: 1.5rem; color: var(--green); line-height: 1; }
+  .pf-stat .l { font-size: 0.72rem; color: var(--ink-dim); margin-top: 7px; line-height: 1.4; }
+
+  /* scope line */
+  .fm-scope { margin: 22px 0 0; font-size: 0.94rem; color: var(--ink); line-height: 1.7; max-width: 94ch; }
+  .fm-scope b { color: var(--green); font-weight: 600; }
+
+  /* two interactive columns */
+  .fm-colh { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; color: var(--gold); margin: 0 0 6px; }
+  .fm-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 52px; margin-top: 34px; }
+  .fm-list { display: flex; flex-direction: column; }
+  .fm-acc { border-bottom: 1px solid var(--line-soft); }
+  .fm-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; text-align: left; font: inherit; color: inherit; background: transparent; border: none; padding: 14px 6px 14px 4px; cursor: pointer; transition: background 0.15s ease, padding 0.15s ease; }
+  .fm-item:hover { background: rgba(41,37,31,0.04); padding-left: 12px; }
+  .fm-item .in { display: flex; align-items: baseline; gap: 13px; }
+  .fm-item .num { color: var(--green); font-weight: 700; font-size: 0.8rem; width: 14px; flex-shrink: 0; }
+  .fm-item .nm { font-weight: 600; font-size: 0.93rem; color: var(--ink); }
+  .fm-item .ch { color: var(--gold); opacity: 0.45; font-size: 1.1rem; line-height: 1; transition: transform 0.2s ease, opacity 0.18s ease; }
+  .fm-item:hover .ch { opacity: 1; }
+  .fm-acc.open .ch { opacity: 1; transform: rotate(90deg); color: var(--green); }
+  .fm-acc-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.28s ease; }
+  .fm-acc.open .fm-acc-body { grid-template-rows: 1fr; }
+  .fm-acc-inner { overflow: hidden; }
+  .fm-acc-text { padding: 0 6px 16px 6px; font-size: 0.84rem; color: var(--ink-dim); line-height: 1.55; }
+  .fm-acc-sub { display: block; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold); font-weight: 700; margin-bottom: 6px; }
+
+  /* footer */
+  .fm-foot { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--line-soft); display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .fm-credit { font-size: 0.86rem; color: var(--ink-dim); line-height: 1.5; max-width: 46ch; }
+  .fm-credit b { color: var(--ink); font-weight: 600; }
+  .fm-actions { display: flex; align-items: center; gap: 12px; }
+  .fm-ghost-btn { font: inherit; font-size: 0.84rem; font-weight: 600; padding: 12px 22px; background: transparent; color: var(--green); border: 1px solid var(--green); border-radius: 2px; cursor: pointer; transition: background 0.2s ease, color 0.2s ease; }
+  .fm-ghost-btn:hover { background: var(--green); color: #fff; }
+  .fm-view-btn { font: inherit; font-size: 0.84rem; font-weight: 600; padding: 13px 26px; background: var(--green); color: #fff; border: none; border-radius: 2px; cursor: pointer; transition: background 0.2s ease, transform 0.15s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 9px; }
+  .fm-view-btn:hover { background: #24492f; transform: translateY(-1px); }
+
+  /* leadership inline panel */
+  .fm-ghost-btn.is-active { background: var(--green); color: #fff; }
+  .fm-lead { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
+  .fm-lead.open { grid-template-rows: 1fr; }
+  .fm-lead-inner { overflow: hidden; }
+  .fm-lead-pad { padding: 26px 0 6px; }
+  .fm-lead-grid { display: grid; grid-template-columns: 150px 1fr; gap: 28px; align-items: start; }
+  .fm-lead-photo { aspect-ratio: 3 / 4; background: var(--bg-alt); background-size: cover; background-position: center; position: relative; border: 1px solid var(--line); }
+  .fm-lead-photo:not(.filled)::after { content: 'Photo'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-dim); opacity: 0.4; }
+  .fm-lead-role { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--gold); font-weight: 700; margin: 0 0 4px; }
+  .fm-lead-name { font-family: var(--serif); font-size: 1.4rem; font-weight: 400; color: var(--ink); margin: 0 0 12px; }
+  .fm-lead-bio { font-size: 0.88rem; color: var(--ink-dim); line-height: 1.68; margin: 0; max-width: 72ch; }
+  .fm-lead-team { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line-soft); }
+  .fm-lead-team ul { list-style: none; padding: 0; margin: 10px 0 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .fm-lead-team li b { display: block; color: var(--ink); font-weight: 600; font-size: 0.86rem; }
+  .fm-lead-team li span { color: var(--ink-dim); font-size: 0.78rem; }
+
+  /* ---------- Full-screen lightbox ---------- */
+  .pf-lb { position: fixed; inset: 0; z-index: 100; background: rgba(20,17,13,0.92); display: none; align-items: center; justify-content: center; }
+  .pf-lb.open { display: flex; }
+  .pf-lb-stage { position: relative; width: 94vw; height: 88vh; background-color: #211d18; border-radius: 2px; }
+  /* framed mode: stage is a strict 16:9 rectangle, blur is clipped to it, and everything
+     outside the frame is just the see-through dark overlay (used by blur projects) */
+  .pf-lb.framed .pf-lb-stage { width: auto; height: 88vh; aspect-ratio: 16 / 9; max-width: 94vw; overflow: hidden; }
+  /* blurred backdrop layer (only used by projects flagged bg:'blur') */
+  .pf-lb-bg { position: absolute; inset: 0; background-size: cover; background-position: center; background-repeat: no-repeat; border-radius: 2px; filter: blur(30px) brightness(0.7) saturate(1.1); transform: scale(1.14); opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+  .pf-lb-bg.on { opacity: 1; }
+  .pf-lb-img { position: absolute; inset: 0; background-color: transparent; background-size: cover; background-repeat: no-repeat; background-position: center; border-radius: 2px; cursor: pointer; }
+  .pf-lb-img:not(.filled)::after { content: 'Image to follow'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.22); font-size: 0.8rem; letter-spacing: 0.16em; text-transform: uppercase; }
+  .pf-lb-scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0) 22%, rgba(0,0,0,0) 62%, rgba(0,0,0,0.55)); border-radius: 2px; }
+  .pf-lb-name { position: absolute; top: 24px; left: 28px; z-index: 2; color: #fff; font-family: var(--serif); font-size: clamp(1.3rem, 3vw, 2.2rem); line-height: 1.1; max-width: 72%; text-shadow: 0 2px 12px rgba(0,0,0,0.5); pointer-events: none; }
+  .pf-lb-meta { position: absolute; left: 28px; bottom: 26px; z-index: 2; color: rgba(255,255,255,0.92); font-size: 0.86rem; line-height: 1.55; text-shadow: 0 1px 8px rgba(0,0,0,0.6); pointer-events: none; }
+  .pf-lb-meta .aw { color: var(--gold-2); }
+  .pf-lb-count { position: absolute; right: 28px; bottom: 26px; z-index: 2; color: rgba(255,255,255,0.82); font-size: 0.8rem; font-variant-numeric: tabular-nums; pointer-events: none; text-align: right; }
+  .pf-lb-count b { font-weight: 600; }
+  .pf-lb-count .pf-lb-proj { display: block; margin-top: 4px; color: rgba(255,255,255,0.5); font-size: 0.7rem; letter-spacing: 0.04em; }
+  .pf-lb-close { position: absolute; top: 16px; right: 20px; z-index: 3; width: 42px; height: 42px; border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.2s ease; }
+  .pf-lb-close:hover { background: rgba(255,255,255,0.24); }
+  .pf-lb-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 48px; height: 48px; border: 1px solid rgba(255,255,255,0.28); background: rgba(18,15,11,0.5); color: #fff; font-size: 1.7rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.2s ease, border-color 0.2s ease; box-shadow: 0 2px 12px rgba(0,0,0,0.45); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); text-shadow: 0 1px 4px rgba(0,0,0,0.7); }
+  .pf-lb-nav:hover { background: rgba(18,15,11,0.72); border-color: rgba(255,255,255,0.5); }
+  .pf-lb-nav.prev { left: clamp(20px, 5vw, 104px); }
+  .pf-lb-nav.next { right: clamp(20px, 5vw, 104px); }
+
+  /* scroll-for-next-project hint */
+  .pf-lb-hint { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 3; display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255,255,255,0.78); font-size: 0.66rem; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; background: transparent; border: none; font-family: inherit; padding: 6px 10px; transition: opacity 0.45s ease, color 0.2s ease; text-shadow: 0 1px 8px rgba(0,0,0,0.6); }
+  .pf-lb-hint:hover { color: #fff; }
+  .pf-lb-hint.hidden { opacity: 0; pointer-events: none; }
+  .pf-lb-hint .chev { width: 11px; height: 11px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; animation: pfHintBounce 1.7s ease-in-out infinite; }
+  @keyframes pfHintBounce { 0%, 100% { transform: translateY(0) rotate(45deg); } 50% { transform: translateY(4px) rotate(45deg); } }
+
+  /* ---------- Selected-work index (clickable project matrix) ---------- */
+  .pf-index { position: fixed; inset: 0; z-index: 100; background: #14110d; display: none; overflow-y: auto; overscroll-behavior: contain; }
+  .pf-index.open { display: block; }
+  .pf-index-inner { max-width: 1180px; margin: 0 auto; padding: 66px 40px 80px; }
+  .pf-index-eyebrow { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.18em; color: var(--gold); font-weight: 700; margin: 0 0 8px; }
+  .pf-index-title { font-family: var(--serif); font-weight: 400; color: #f3ece0; font-size: clamp(1.6rem, 3vw, 2.4rem); margin: 0 0 28px; }
+  .pf-index-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 24px 20px; }
+  .pf-index-item { display: flex; flex-direction: column; text-align: left; background: transparent; border: none; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+  .pf-index-thumb { position: relative; aspect-ratio: 3 / 2; overflow: hidden; background: #2a2620; border: 1px solid rgba(255,255,255,0.12); border-radius: 2px; transition: border-color 0.2s ease; }
+  .pf-index-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.45s ease, filter 0.3s ease; filter: brightness(0.9); }
+  .pf-index-item:hover .pf-index-thumb { border-color: var(--gold); }
+  .pf-index-item:hover .pf-index-thumb img { transform: scale(1.05); filter: brightness(1.05); }
+  .pf-index-num { position: absolute; top: 8px; left: 10px; font-size: 0.66rem; font-weight: 700; color: rgba(255,255,255,0.9); text-shadow: 0 1px 5px rgba(0,0,0,0.8); font-variant-numeric: tabular-nums; }
+  .pf-index-imgs { position: absolute; bottom: 8px; right: 9px; font-size: 0.58rem; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.42); padding: 2px 7px; border-radius: 10px; letter-spacing: 0.02em; }
+  .pf-index-name { font-family: var(--serif); font-size: 0.98rem; color: #efe7da; margin: 11px 0 0; line-height: 1.25; }
+  .pf-index-loc { font-size: 0.74rem; color: rgba(255,255,255,0.48); margin-top: 3px; min-height: 0.9rem; }
+  .pf-index-close { position: fixed; top: 16px; right: 20px; z-index: 3; width: 42px; height: 42px; border: none; background: rgba(255,255,255,0.12); color: #fff; font-size: 1.5rem; line-height: 1; cursor: pointer; border-radius: 50%; transition: background 0.2s ease; }
+  .pf-index-close:hover { background: rgba(255,255,255,0.24); }
+  @media (max-width: 600px) { .pf-index-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; } .pf-index-inner { padding: 56px 20px 60px; } }
+
+  /* ---------- The Team · connectored org chart ---------- */
+  #team { padding-top: 44px !important; }
+  #team .eyebrow { margin-bottom: 10px; }
+  #team h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); margin-bottom: 10px; }
+  #team .lead { margin: 0; font-size: 0.96rem; max-width: 84ch; }
+  .tm { max-width: 1080px; margin: 20px auto 0; width: 100%; }
+  .tm-tree-wrap { overflow-x: auto; padding: 4px 0 2px; }
+  .tm-tree, .tm-tree ul { display: flex; justify-content: center; position: relative; margin: 0; padding: 0; }
+  .tm-tree { padding-top: 0; }
+  .tm-tree ul { padding-top: 22px; }
+  .tm-tree li { list-style: none; position: relative; padding: 22px 3px 0; display: flex; flex-direction: column; align-items: center; }
+  .tm-tree > li { padding-top: 0; }
+  .tm-tree li::before, .tm-tree li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 1px solid var(--line); width: 50%; height: 22px; }
+  .tm-tree li::after { right: auto; left: 50%; border-left: 1px solid var(--line); }
+  .tm-tree li:only-child::before, .tm-tree li:only-child::after { display: none; }
+  .tm-tree li:only-child { padding-top: 0; }
+  .tm-tree li:first-child::before, .tm-tree li:last-child::after { border: 0 none; }
+  .tm-tree li:last-child::before { border-right: 1px solid var(--line); }
+  .tm-tree ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 1px solid var(--line); width: 0; height: 22px; }
+
+  .tm-node { border: 1px solid var(--line); background: var(--paper); padding: 8px 11px; text-align: center; font: inherit; color: inherit; }
+  .tm-node.sel, .tm-node.grp { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; }
+  .tm-node.sel { width: 172px; min-height: 88px; }
+  .tm-node.grp { width: 112px; min-height: 74px; }
+  button.tm-node { cursor: pointer; transition: background 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+  button.tm-node:hover:not(.is-active) { background: #efe7d6; }
+  .tm-node.is-active { border-color: var(--gold); background: #fff; box-shadow: var(--shadow); }
+  .tm-node.client { background: var(--paper-2); }
+  .tm-node.lead { border-color: var(--green); border-width: 1.5px; }
+  .tm-node .lab { font-size: 0.55rem; text-transform: uppercase; letter-spacing: 0.11em; color: var(--ink-dim); font-weight: 700; }
+  .tm-node .t { font-weight: 600; font-size: 0.82rem; line-height: 1.2; margin-top: 2px; }
+  .tm-node.lead .t { color: var(--green); }
+  .tm-node .s { font-size: 0.64rem; color: var(--ink-dim); margin-top: 3px; }
+  .tm-handover { margin: 14px auto 0; font-size: 0.8rem; color: var(--ink-dim); text-align: center; max-width: 76ch; line-height: 1.5; }
+
+  .tm-panel { margin-top: 22px; background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--gold); padding: 22px 24px; transition: opacity 0.2s ease, transform 0.3s ease; }
+  .tm-panel.is-swapping { opacity: 0; transform: translateY(6px); }
+  .tm-panel-name { font-family: var(--serif); font-size: 1.3rem; font-weight: 400; color: var(--ink); margin: 0 0 4px; }
+  .tm-panel-why { font-size: 0.9rem; color: var(--ink-dim); margin: 0 0 14px; line-height: 1.55; max-width: 82ch; }
+  .tm-roles { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 30px; }
+  .tm-role { padding: 8px 0; border-top: 1px solid var(--line-soft); font-size: 0.84rem; line-height: 1.45; }
+  .tm-role b { color: var(--ink); font-weight: 600; }
+  .tm-role span { color: var(--ink-dim); }
+
+  /* Team chapter close: two-part recap, balanced and centred */
+  .closing .pbn { grid-template-columns: repeat(2, 1fr); max-width: 720px; gap: 52px; }
+
+  @media (max-width: 820px) {
+    .pf-stats { grid-template-columns: repeat(2, 1fr); }
+    .fm-cols { grid-template-columns: 1fr; gap: 28px; }
+    .fm-foot { flex-direction: column; align-items: flex-start; }
+    .fm-lead-grid { grid-template-columns: 110px 1fr; gap: 16px; }
+    .fm-lead-team ul { grid-template-columns: 1fr; }
+    .pf-lb-stage { width: 96vw; height: 82vh; }
+    .tm-roles { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<a href="index.html#menu" class="back-btn" id="backBtn">‹&nbsp; Contents</a>
+
+<!-- ===================== TEAM COVER ===================== -->
+<section class="chapter-open slide">
+  <p class="kicker">Chapter 03</p>
+  <h1>Team</h1>
+  <p class="intro">External Reference, the consultant team a supertall requires, and how it is coordinated.</p>
+  <a href="#team-index" class="scroll-cue" style="position:absolute; bottom:34px; left:8vw; transform:none;">
+    <span>Index</span><span class="arrow"></span>
+  </a>
+</section>
+
+<!-- ===================== TEAM INDEX ===================== -->
+<section class="vindex slide" id="team-index">
+  <h2>Team</h2>
+  <ul class="toc">
+    <li><a href="#firm"><span class="tnum">01</span><span class="ttl">The Firm</span><span class="tds">External Reference, and the work behind the proposal.</span></a></li>
+    <li><a href="#team"><span class="tnum">02</span><span class="ttl">The Team</span><span class="tds">The full consultant roster, and how it is coordinated.</span></a></li>
+  </ul>
+</section>
+
+<!-- ===================== 01 THE FIRM ===================== -->
+<section class="section slide" id="firm" style="justify-content:flex-start;">
+  <p class="eyebrow green">01 · The Firm</p>
+  <h2>External Reference.</h2>
+  <p class="lead">An award-winning design practice with studios in Barcelona and Dubai. Two decades of work across architecture, interiors, urban design and exhibitions, with a focus on computational design, digital fabrication and new materials.</p>
+
+  <div class="pfwrap">
+    <div class="pf-stats">
+      <div class="pf-stat"><div class="v">20+</div><div class="l">years of practice</div></div>
+      <div class="pf-stat"><div class="v">2</div><div class="l">studios, Barcelona and Dubai</div></div>
+      <div class="pf-stat"><div class="v">Global</div><div class="l">work across Europe, the Gulf and Asia</div></div>
+      <div class="pf-stat"><div class="v">KSA</div><div class="l">projects delivered in Saudi Arabia</div></div>
+    </div>
+
+    <div class="fm-foot">
+      <p class="fm-credit">Led by <b>Dr. Carmelo Zappulla</b>, with a studio team across Barcelona and Dubai.</p>
+      <div class="fm-actions">
+        <button type="button" class="fm-ghost-btn" id="leadBtn" aria-expanded="false">Leadership</button>
+        <button type="button" class="fm-view-btn" id="pfOpen">View selected work <span class="arw">&rsaquo;</span></button>
+      </div>
+    </div>
+
+    <div class="fm-lead" id="leadAcc">
+      <div class="fm-lead-inner"><div class="fm-lead-pad">
+        <div class="fm-lead-grid">
+          <div class="fm-lead-photo filled" style="background-image:url('images/web/people/carmelo.jpg')"></div>
+          <div>
+            <p class="fm-lead-role">Founder, CEO and Head of Design</p>
+            <h3 class="fm-lead-name">Dr. Carmelo Zappulla</h3>
+            <p class="fm-lead-bio">PhD Architect and the founder of External Reference. He directs the Experience Design Master programs at LCI Barcelona and is a faculty member at IAAC, the Institute for Advanced Architecture of Catalonia. He leads the studio's design direction, combining architecture, computational design and craft with experiential design and contemporary luxury.</p>
+          </div>
+        </div>
+        <div class="fm-lead-team">
+          <p class="fm-colh">The studio team</p>
+          <ul>
+            <li><b>Mathilde Marengo</b><span>PhD Architect, Head of Studio Operations</span></li>
+            <li><b>Sebastian Amorelli</b><span>MAA Architect, Head of Dubai Studio</span></li>
+            <li><b>Martina Ensinck</b><span>Architect, Project Manager</span></li>
+          </ul>
+        </div>
+      </div></div>
+    </div>
+
+    <p class="fm-scope">On this project, External Reference is the <b>Lead Design Consultant</b>: we author architecture, interior design and landscape in-house, and coordinate the Architect of Record, engineering, cost, project management and the specialist consultants.</p>
+
+    <div class="fm-cols">
+      <div>
+        <p class="fm-colh">Our services</p>
+        <div class="fm-list">
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="nm">Creative development</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Shaping ideas into narrative</span>Concept design, experience design, art direction and project storytelling.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="nm">Design intelligence</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">From data to design</span>Computational and parametric design, 2D, 3D and BIM modelling, AI in design, and custom computational tools.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="nm">Digital craftsmanship</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Materialising innovation</span>Material research, 3D printing, design for manufacture, prototyping and custom fabrication.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="nm">Brand and product</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Crafting identity</span>Visual identity, brand development and strategy, product design and production, and spatial experience.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="nm">Execution and construction</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">From vision to reality</span>Technical and blueprint drawings, technical coordination and project management, construction support, and cost and quality control.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="nm">Strategy and consultancy</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Bridging vision and execution</span>Design consultancy, sustainability and circular strategies, experiential retail development, and innovation partnership.</div></div></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p class="fm-colh">Our process</p>
+        <div class="fm-list">
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="num">1</span><span class="nm">Brief &amp; analysis</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Stage 1</span>Client brief and site analysis, to set the goals and the constraints.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="num">2</span><span class="nm">Concept design</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Stage 2</span>Moodboards and conceptual directions, then a concept layout, visualisations and renders.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="num">3</span><span class="nm">Design development</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Stage 3</span>The chosen concept adapted to the space and layout, developed as plans and elevations.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="num">4</span><span class="nm">Technical design</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Stage 4</span>Detailed plans with specifications and materials, plus lighting, audiovisual and bespoke-element drawings.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="num">5</span><span class="nm">Execution management</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Stage 5</span>Bidding support, specialist suppliers, shop-drawing review, and coordination with the Architect of Record.</div></div></div>
+          </div>
+          <div class="fm-acc">
+            <button type="button" class="fm-item"><span class="in"><span class="num">6</span><span class="nm">Site supervision</span></span><span class="ch">&rsaquo;</span></button>
+            <div class="fm-acc-body"><div class="fm-acc-inner"><div class="fm-acc-text"><span class="fm-acc-sub">Stage 6</span>Design oversight during assembly and construction on site.</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== 02 THE TEAM ===================== -->
+<section class="section slide" id="team" style="justify-content:flex-start;">
+  <p class="eyebrow green">02 · The Team</p>
+  <h2>The consultant team.</h2>
+  <p class="lead">A landmark supertall requires 30 to 40 specialist firms, across engineering, tall-building, environmental, commercial and statutory disciplines. The client works through two reporting lines: programme and cost on one side, design on the other. The lead design consultant heads the design line and coordinates every discipline within it. Select a node to see its roster.</p>
+
+  <div class="tm">
+    <div class="tm-tree-wrap">
+      <ul class="tm-tree">
+        <li>
+          <div class="tm-node client"><div class="t">Client / Developer</div><div class="s">Vision, capital, final decisions</div></div>
+          <ul>
+            <li>
+              <button class="tm-node sel" data-g="delivery"><div class="lab">Delivery line</div><div class="t">Programme &amp; Cost</div><div class="s">4 roles</div></button>
+            </li>
+            <li>
+              <button class="tm-node sel lead" data-g="design"><div class="lab">Design line</div><div class="t">Lead Design Consultant</div><div class="s">External Reference + AOR</div></button>
+              <ul>
+                <li><button class="tm-node grp" data-g="eng"><div class="t">Core engineering</div><div class="s">4 roles</div></button></li>
+                <li><button class="tm-node grp" data-g="tall"><div class="t">Tall-building</div><div class="s">5 roles</div></button></li>
+                <li><button class="tm-node grp" data-g="green"><div class="t">Green &amp; experience</div><div class="s">7 roles</div></button></li>
+                <li><button class="tm-node grp" data-g="comm"><div class="t">Commercial &amp; brand</div><div class="s">5 roles</div></button></li>
+                <li><button class="tm-node grp" data-g="stat"><div class="t">Statutory &amp; assurance</div><div class="s">6 roles</div></button></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <p class="tm-handover">At construction, the design team hands the design over to the main contractor and specialist subcontractors. The lead design consultant is retained for design oversight on site.</p>
+
+    <article class="tm-panel" id="tmPanel">
+      <h3 class="tm-panel-name" id="tmName"></h3>
+      <p class="tm-panel-why" id="tmWhy"></p>
+      <ul class="tm-roles" id="tmRoles"></ul>
+    </article>
+  </div>
+  <p class="src"><b>Sources</b><span class="s">Supertall multidisciplinary team structures, Thornton Tomasetti and RWDI.</span><span class="s">Wind engineering for tall buildings, WSP.</span><span class="s">Lead-consultant coordination models.</span></p>
+</section>
+
+<!-- ===================== CLOSING: TEAM ===================== -->
+<section class="closing slide">
+  <p class="eyebrow">Team</p>
+  <h2 class="pbn-title">In summary.</h2>
+  <div class="pbn">
+    <div class="pbn-item">
+      <span class="pbn-k">The firm</span>
+      <p>An award-winning practice with studios in Barcelona and Dubai, and work already delivered in Saudi Arabia.</p>
+    </div>
+    <div class="pbn-item">
+      <span class="pbn-k">The team</span>
+      <p>The 30 to 40 firms a supertall requires, coordinated through two reporting lines under External Reference as lead design consultant.</p>
+    </div>
+  </div>
+  <a href="index.html#menu" class="menu-return-btn">Back to Contents</a>
+</section>
+
+<!-- ===================== SELECTED-WORK INDEX ===================== -->
+<div class="pf-index" id="pfIndex" aria-hidden="true" role="dialog" aria-label="Selected work index">
+  <button class="pf-index-close" id="pfIndexClose" aria-label="Close">&times;</button>
+  <div class="pf-index-inner">
+    <p class="pf-index-eyebrow">External Reference</p>
+    <h2 class="pf-index-title">Selected work</h2>
+    <div class="pf-index-grid" id="pfIndexGrid"></div>
+  </div>
+</div>
+
+<!-- ===================== LIGHTBOX ===================== -->
+<div class="pf-lb" id="pfLb" aria-hidden="true" role="dialog" aria-label="Project viewer">
+  <button class="pf-lb-close" id="pfClose" aria-label="Close">&times;</button>
+  <button class="pf-lb-nav prev" id="pfPrev" aria-label="Previous">&lsaquo;</button>
+  <button class="pf-lb-nav next" id="pfNext" aria-label="Next">&rsaquo;</button>
+  <div class="pf-lb-stage">
+    <div class="pf-lb-bg" id="pfBg"></div>
+    <div class="pf-lb-img" id="pfImg"></div>
+    <div class="pf-lb-scrim"></div>
+    <div class="pf-lb-name" id="pfLbName"></div>
+    <div class="pf-lb-meta" id="pfLbMeta"></div>
+    <div class="pf-lb-count" id="pfLbCount"></div>
+    <button type="button" class="pf-lb-hint" id="pfHint" aria-label="Next project"><span>Scroll for next project</span><span class="chev"></span></button>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+<script>
+  // Back button: Team index while in content, Contents while on cover/index.
+  (function () {
+    var btn = document.getElementById('backBtn');
+    var content = document.getElementById('firm');
+    if (btn && content) {
+      var update = function () {
+        var inContent = content.getBoundingClientRect().top < window.innerHeight * 0.5;
+        btn.setAttribute('href', inContent ? '#team-index' : 'index.html#menu');
+        btn.innerHTML = inContent ? '‹&nbsp; Team' : '‹&nbsp; Contents';
+      };
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    }
+  })();
+
+  // ---------- Portfolio + full-screen lightbox ----------
+  // Two-axis viewer:  vertical (wheel / swipe up-down / ArrowUp-Down) = change PROJECT
+  //                   horizontal (side arrows / swipe left-right / ArrowLeft-Right) = change IMAGE
+  (function () {
+    var IMG_BASE = 'images/web/';
+    // seq(n) -> ['01.jpg','02.jpg', ... ]  (images are optimised copies in images/web/<folder>/)
+    function seq(n) { var a = []; for (var i = 1; i <= n; i++) a.push((i < 10 ? '0' : '') + i + '.jpg'); return a; }
+    // Each project: display name, location, year, award(s), source folder, image count.
+    // loc/year/awards left blank where not yet provided — fill these in as info comes.
+    var projects = [
+      // Sorted by year (newest first), then by relevance to a Riyadh supertall
+      // (towers & KSA/Gulf landmarks first within each year).
+      { name:'Babylon Tower',                  loc:'Dubai, UAE',                year:'2025', awards:'',                                                                    folder:'Babylon Tower Dubai',              imgs:seq(6) },
+      { name:'D11 Masterplan',                 loc:'Dubai, UAE',                year:'2025', awards:'',                                                                    folder:'D11 Masterplan',                   imgs:seq(5) },
+      { name:'The DNA',                        loc:'Dubai, UAE',                year:'2025', awards:'',                                                                    folder:'The DNA Dubai',                    imgs:seq(6) },
+      { name:'The Embrace',                    loc:'Dubai, UAE',                year:'2025', awards:'',                                                                    folder:'The Embrace Dubai',                imgs:seq(5) },
+      { name:'Presented By Abu Dhabi',         loc:'Abu Dhabi, UAE',            year:'2025', awards:'SBID, BLT, London Design Awards',                                     folder:'2025_PRESENTED BY ABU DHABI',      imgs:seq(6) },
+      { name:'Onada Suites',                   loc:'Barcelona, Spain',          year:'2025', awards:'',                                                                    folder:'Onada Suites - W Barcelona',       imgs:seq(15) },
+      { name:'Aurom Villa',                    loc:'Dubai, UAE',                year:'2025', awards:'',                                                                    folder:'Aurom Villa',                      imgs:seq(16) },
+      { name:'Masia Escalencs',                loc:'Girona, Spain',             year:'2025', awards:'',                                                                    folder:'MASIA ESCALENCS',                  imgs:seq(4) },
+      { name:'Neom The Ascent',                loc:'NEOM, Saudi Arabia',        year:'2024', awards:'',                                                                    folder:'Neom The Ascent',                  imgs:seq(6) },
+      { name:'Neom The Enclave',               loc:'NEOM, Saudi Arabia',        year:'2024', awards:'',                                                                    folder:'Neom The Enclave',                 imgs:seq(6) },
+      { name:'Neom Mirage',                    loc:'NEOM, Saudi Arabia',        year:'2024', awards:'',                                                                    folder:'Neom Mirage',                      imgs:seq(6) },
+      { name:'Neom Terraform',                 loc:'NEOM, Saudi Arabia',        year:'2024', awards:'',                                                                    folder:'Neom Terraform',                   imgs:seq(6) },
+      { name:'Vishab Residences',              loc:'San Salvador, El Salvador', year:'2024', awards:'',                                                                    folder:'Vishab Residences',                imgs:seq(5) },
+      { name:'Costa do Vizir Wellness',        loc:'Porto Covo, Portugal',      year:'2024', awards:'',                                                                    folder:'COSTA DO VIZIR WELLNESS',          imgs:seq(4) },
+      { name:'Villa Chiaramonte',              loc:'Ragusa, Italy',             year:'2024', awards:'',                                                                    folder:'VILLA CHAIRAMONTE',                imgs:seq(3) },
+      { name:'Neom The Pinnacle',              loc:'NEOM, Saudi Arabia',        year:'2023', awards:'',                                                                    folder:'Neom The Pinnacle',                imgs:seq(9) },
+      { name:'Porto Covo Eco Resort',          loc:'Porto Covo, Portugal',      year:'2023', awards:'',                                                                    folder:'Porto Covo Eco Resort',            imgs:seq(8) },
+      { name:'F1 Grand Prix',                  loc:'Jeddah, Saudi Arabia',      year:'2022', awards:'',                                                                    folder:'F1 GRAN PRIX',                     imgs:seq(7) },
+      { name:'WOW Concept',                    loc:'Madrid, Spain',             year:'2022', awards:'BLT, WAF, Architecture Masterprize, Mapic Awards, German Design Awards', folder:'2022_WOW CONCEPT',                 imgs:['04.jpg'].concat(seq(38).filter(function (f) { return f !== '04.jpg'; })) },
+      { name:'Street Waves Festival',          loc:'Jeddah, Saudi Arabia',      year:'2022', awards:'',                                                                    folder:'Street Waves Festival',            imgs:seq(9) },
+      { name:'Malinska Complex',               loc:'Malinska, Croatia',         year:'2022', awards:'',                                                                    folder:'Malinska Complex',                 imgs:seq(10) },
+      { name:'Escaleras y Mirador Vela',       loc:'Barcelona, Spain',          year:'2022', awards:'',                                                                    folder:'Escaleras Vela',                   imgs:seq(9) },
+      { name:'Spanish Pavilion Expo Dubai 2020', loc:'Dubai, UAE',              year:'2021', awards:'',                                                                    folder:'2021_SPANISH PAVILION EXPO DUBAI', imgs:seq(11) },
+      { name:'24K Clockwork',                  loc:'Bangkok, Thailand',         year:'2019', awards:'',                                                                    folder:'2019_24K CLOCKWORK',               imgs:seq(9) }
+    ];
+    var lb = document.getElementById('pfLb');
+    var imgEl = document.getElementById('pfImg');
+    var bgEl = document.getElementById('pfBg');
+    var nameEl = document.getElementById('pfLbName');
+    var metaEl = document.getElementById('pfLbMeta');
+    var countEl = document.getElementById('pfLbCount');
+    var openBtn = document.getElementById('pfOpen');
+    var hintEl = document.getElementById('pfHint');
+    var indexEl = document.getElementById('pfIndex');
+    var gridEl = document.getElementById('pfIndexGrid');
+    if (!lb || !openBtn) return;
+
+    var pI = 0;   // project index
+    var iI = 0;   // image index within current project
+
+    function src(p, i) { return encodeURI(IMG_BASE + p.folder + '/' + p.imgs[i]); }
+    function thumbSrc(p, i) { return encodeURI(IMG_BASE + 'thumbs/' + p.folder + '/' + p.imgs[i]); }
+    // Bulletproof scroll lock: pin <body> in place while an overlay is open so nothing behind
+    // can move (handles rubber-band / momentum that overflow:hidden alone can miss), then
+    // restore the exact scroll position when both overlays are closed. State-driven so the
+    // index <-> viewer handoffs never accidentally unlock.
+    var savedY = 0, scrollLocked = false;
+    function applyLock(on) {
+      if (on === scrollLocked) return;
+      var de = document.documentElement, b = document.body;
+      if (on) {
+        savedY = window.scrollY || de.scrollTop || 0;
+        b.style.position = 'fixed'; b.style.top = (-savedY) + 'px'; b.style.left = '0'; b.style.right = '0'; b.style.width = '100%';
+        de.style.overflow = 'hidden';
+      } else {
+        var sb = de.style.scrollBehavior; de.style.scrollBehavior = 'auto';
+        b.style.position = ''; b.style.top = ''; b.style.left = ''; b.style.right = ''; b.style.width = '';
+        de.style.overflow = '';
+        window.scrollTo(0, savedY);
+        de.style.scrollBehavior = sb;
+      }
+      scrollLocked = on;
+    }
+    function syncLock() { applyLock(lb.classList.contains('open') || indexEl.classList.contains('open')); }
+
+    // ---- Aspect-ratio fit: images close to the 16:9 stage fill it (cover, full-bleed);
+    //      portrait / square / off-ratio images sit whole on a matte field (contain). ----
+    var dims = {};                 // src url -> aspect ratio (w/h), cached once measured
+    // Asymmetric tolerance: an image WIDER than the frame only loses a bit off the sides when
+    // covered (fine for architecture), so allow generously. An image NARROWER/taller than the
+    // frame loses top & bottom (can cut off a building), so only cover if it's very close —
+    // otherwise show it whole on the matte.
+    var WIDE_TOL = 0.35;           // wider than frame: cover up to +35% before going to matte
+    var NARROW_TOL = 0.12;         // narrower than frame: cover only within 12%, else matte
+    function stageRatio() { var r = imgEl.getBoundingClientRect(); return r.height ? r.width / r.height : 1.777; }
+    function chooseSize(ratio) {
+      var sr = stageRatio();
+      if (ratio >= sr) return ratio <= sr * (1 + WIDE_TOL) ? 'cover' : 'contain';
+      return ratio >= sr * (1 - NARROW_TOL) ? 'cover' : 'contain';
+    }
+    function applyFit(url) {
+      if (dims[url]) { imgEl.style.backgroundSize = chooseSize(dims[url]); return; }
+      imgEl.style.backgroundSize = 'contain';   // safe default until measured (never crops/enlarges)
+      var im = new Image();
+      im.onload = function () { dims[url] = im.naturalWidth / im.naturalHeight; if (imgEl.dataset.cur === url) imgEl.style.backgroundSize = chooseSize(dims[url]); };
+      im.src = url;
+    }
+
+    // Warm only the adjacent images (next/prev, wrapping) so arrow nav is instant
+    // without firing dozens of concurrent requests at the single-threaded server.
+    // Caches their aspect ratios too, so the fit is known before you navigate (no flash).
+    function preloadAround() {
+      var p = projects[pI], n = p.imgs.length;
+      [(iI + 1) % n, (iI - 1 + n) % n].forEach(function (k) {
+        var u = src(p, k), im = new Image();
+        im.onload = function () { dims[u] = im.naturalWidth / im.naturalHeight; };
+        im.src = u;
+      });
+    }
+
+    function render() {
+      var p = projects[pI];
+      var url = src(p, iI);
+      imgEl.style.backgroundImage = 'url("' + url + '")';
+      imgEl.dataset.cur = url;
+      applyFit(url);
+      imgEl.classList.add('filled');
+      // Blurred backdrop + strict 16:9 framing for every project: the sharp image sits in a
+      // fixed 16:9 frame, off-ratio images get a soft blurred fill of themselves inside that
+      // frame, and everything outside the frame is the see-through dark overlay.
+      bgEl.style.backgroundImage = 'url("' + url + '")';
+      bgEl.classList.add('on');
+      lb.classList.add('framed');
+      nameEl.textContent = p.name;
+      var line = [p.loc]; if (p.year) line.push(p.year);
+      metaEl.innerHTML = esc(line.join('  ·  ')) + (p.awards ? '<br><span class="aw">' + esc(p.awards) + '</span>' : '');
+      // image position within this project · project position within the set
+      countEl.innerHTML = '<b>' + (iI + 1) + ' / ' + p.imgs.length + '</b>'
+        + '<span class="pf-lb-proj">Project ' + (pI + 1) + ' / ' + projects.length + '</span>';
+      preloadAround();
+    }
+    function open(i) { pI = i; iI = 0; render(); if (hintEl && projects.length > 1) hintEl.classList.remove('hidden'); lb.classList.add('open'); lb.setAttribute('aria-hidden', 'false'); syncLock(); }
+    function close() { lb.classList.remove('open'); lb.setAttribute('aria-hidden', 'true'); openIndex(); }   // back to the grid
+
+    // ---- Selected-work index (clickable grid of all projects) ----
+    var indexBuilt = false;
+    function buildIndex() {
+      if (!gridEl || indexBuilt) return;
+      indexBuilt = true;
+      var frag = document.createDocumentFragment();
+      projects.forEach(function (p, idx) {
+        var btn = document.createElement('button');
+        btn.type = 'button'; btn.className = 'pf-index-item';
+        btn.innerHTML =
+          '<div class="pf-index-thumb">' +
+            '<span class="pf-index-num">' + (idx + 1 < 10 ? '0' : '') + (idx + 1) + '</span>' +
+            '<img src="' + thumbSrc(p, 0) + '" alt="" decoding="async">' +
+            '<span class="pf-index-imgs">' + p.imgs.length + '</span>' +
+          '</div>' +
+          '<p class="pf-index-name">' + esc(p.name) + '</p>' +
+          '<p class="pf-index-loc">' + (p.loc ? esc(p.loc) : '&nbsp;') + '</p>';
+        btn.addEventListener('click', function () { openFromIndex(idx); });
+        frag.appendChild(btn);
+      });
+      gridEl.appendChild(frag);
+    }
+    function openIndex() { buildIndex(); indexEl.classList.add('open'); indexEl.setAttribute('aria-hidden', 'false'); syncLock(); }
+    function closeIndex() { indexEl.classList.remove('open'); indexEl.setAttribute('aria-hidden', 'true'); syncLock(); }
+    function openFromIndex(i) { indexEl.classList.remove('open'); open(i); }
+    // horizontal: images within the current project
+    function goImg(d) { var n = projects[pI].imgs.length; iI = (iI + d + n) % n; render(); }
+    // vertical: projects (resets to the project's first image)
+    function goProj(d) { pI = (pI + d + projects.length) % projects.length; iI = 0; render(); }
+
+    openBtn.addEventListener('click', function () { openIndex(); });
+    document.getElementById('pfIndexClose').addEventListener('click', closeIndex);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && indexEl.classList.contains('open') && !lb.classList.contains('open')) closeIndex(); });
+
+    document.getElementById('pfClose').addEventListener('click', close);
+    document.getElementById('pfPrev').addEventListener('click', function () { goImg(-1); });
+    document.getElementById('pfNext').addEventListener('click', function () { goImg(1); });
+    imgEl.addEventListener('click', function () { goImg(1); });
+    if (hintEl) hintEl.addEventListener('click', function () { goProj(1); });
+    lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+
+    // vertical wheel = change project (debounced so one gesture = one step)
+    var wheelLock = false;
+    lb.addEventListener('wheel', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (wheelLock || Math.abs(e.deltaY) < 8) return;
+      wheelLock = true;
+      goProj(e.deltaY > 0 ? 1 : -1);
+      setTimeout(function () { wheelLock = false; }, 450);
+    }, { passive: false });
+
+    document.addEventListener('keydown', function (e) {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowRight') { e.preventDefault(); goImg(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); goImg(-1); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); goProj(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); goProj(-1); }
+    });
+
+    // touch: dominant axis decides — horizontal = image, vertical = project
+    var x0 = null, y0 = null;
+    imgEl.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+    imgEl.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      var dy = e.changedTouches[0].clientY - y0;
+      if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 40) goImg(dx < 0 ? 1 : -1); }
+      else { if (Math.abs(dy) > 40) goProj(dy < 0 ? 1 : -1); }
+      x0 = y0 = null;
+    });
+
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+  })();
+
+  // ---------- Leadership inline expand ----------
+  (function () {
+    var btn = document.getElementById('leadBtn');
+    var acc = document.getElementById('leadAcc');
+    if (!btn || !acc) return;
+    btn.addEventListener('click', function () {
+      var open = acc.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.classList.toggle('is-active', open);
+    });
+  })();
+
+  // ---------- Services / process inline expand ----------
+  (function () {
+    Array.prototype.forEach.call(document.querySelectorAll('#firm .fm-acc .fm-item'), function (btn) {
+      btn.addEventListener('click', function () {
+        var acc = btn.parentNode;
+        var list = acc.parentNode;
+        var wasOpen = acc.classList.contains('open');
+        Array.prototype.forEach.call(list.querySelectorAll('.fm-acc.open'), function (a) { a.classList.remove('open'); });
+        if (!wasOpen) acc.classList.add('open');
+      });
+    });
+  })();
+
+  // ---------- Orchestration chart ----------
+  (function () {
+    var data = {
+      delivery: { name:'Programme and cost', why:'The client\'s delivery team, on a reporting line separate from design.',
+        roles:[
+          ['Client / Developer','Vision, capital and the final decisions.'],
+          ['Development Manager','Guards the client\'s commercial interest day to day.'],
+          ['Project / Programme Manager','Delivery, schedule, budget and risk on the client\'s behalf.'],
+          ['Cost Consultant / QS','Budget, cost control and value engineering.']
+        ] },
+      design: { name:'Lead design', why:'The design leadership. External Reference authors the design and coordinates every discipline, with a local Architect of Record for statutory delivery.',
+        roles:[
+          ['Lead Design Consultant, External Reference','Authors the architecture, interior and landscape, and coordinates the full design team.'],
+          ['Architect of Record','Local licensed delivery: production documents, the Saudi Building Code and permits.']
+        ] },
+      eng: { name:'Core engineering', why:'The disciplines that make the building stand up and function.',
+        roles:[
+          ['Structural engineer','Core, outriggers, damping and foundations.'],
+          ['Geotechnical engineer','Deep foundations and ground behaviour under load.'],
+          ['MEP / building services','HVAC, power, water and the district-cooling interface.'],
+          ['Civil / infrastructure','Site, utilities, drainage and connections.']
+        ] },
+      tall: { name:'Tall-building specialists', why:'Disciplines that become necessary above roughly 40 storeys.',
+        roles:[
+          ['Wind engineering','Wind is the governing structural load and it shapes the form. Tunnel testing is standard above 40 floors.'],
+          ['Facade / curtain-wall','The skin: performance, shading, and waterproofing for the planted terraces.'],
+          ['Vertical transportation','Around 12,000 people a day. Lift strategy determines usability.'],
+          ['Fire & life safety','High-rise evacuation, refuge floors and smoke control.'],
+          ['Acoustics','Separating hotel, residences and podium in one mixed-use stack.']
+        ] },
+      green: { name:'Green & experience specialists', why:'The disciplines specific to this tower\'s green and public-realm programme.',
+        roles:[
+          ['Sustainability / ESG','Delivers and certifies Mostadam and LEED, and the net-zero pathway.'],
+          ['Landscape architect','The podium public realm and the sky gardens.'],
+          ['Horticultural specialist','Native species, soil loading, closed-loop irrigation and long-term maintenance. The role that keeps the greenery alive.'],
+          ['Microclimate consultant','Podium cooling, shading and outdoor thermal comfort.'],
+          ['Lighting designer','The night identity of the tower, and the interiors.'],
+          ['Interior designers','Residences, hotel and amenities.'],
+          ['Wayfinding','Navigating a vertical neighbourhood.']
+        ] },
+      comm: { name:'Commercial & brand advisory', why:'The disciplines that establish and protect the commercial case.',
+        roles:[
+          ['Market & feasibility advisor','Validates the programme and the numbers.'],
+          ['Hotel operator','The brand and operating agreement that shape the hotel floors.'],
+          ['Branded-residence brand','The name that supports residential pricing.'],
+          ['Retail / leasing strategist','The podium tenant mix.'],
+          ['Sales & marketing','The off-plan launch that funds the build.']
+        ] },
+      stat: { name:'Statutory & assurance', why:'The approvals and controls required for the project to proceed.',
+        roles:[
+          ['Aviation, GACA clearance','Height clearance for the tower.'],
+          ['Environmental impact assessment','The 60 to 180 day approval.'],
+          ['Traffic & transport','Access, parking and movement.'],
+          ['BIM / digital manager','One coordinated model across every discipline.'],
+          ['Building control & code liaison','Conformance with the Saudi Building Code.'],
+          ['Land surveyor & security','Boundaries, levels and security design.']
+        ] }
+    };
+
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('#team .tm-node[data-g]'));
+    if (!nodes.length) return;
+    var panel = document.getElementById('tmPanel');
+    var nameEl = document.getElementById('tmName');
+    var whyEl = document.getElementById('tmWhy');
+    var rolesEl = document.getElementById('tmRoles');
+    var activeId = null, first = true;
+
+    nodes.forEach(function (n) { n.addEventListener('click', function () { select(n.dataset.g); }); });
+
+    function select(id) {
+      if (id === activeId) return;
+      var g = data[id]; if (!g) return;
+      nodes.forEach(function (n) { n.classList.toggle('is-active', n.dataset.g === id); });
+      var swap = function () {
+        nameEl.textContent = g.name;
+        whyEl.textContent = g.why;
+        rolesEl.innerHTML = '';
+        g.roles.forEach(function (r) {
+          var li = document.createElement('li'); li.className = 'tm-role';
+          li.innerHTML = '<b>' + esc(r[0]) + '.</b> <span>' + esc(r[1]) + '</span>';
+          rolesEl.appendChild(li);
+        });
+        requestAnimationFrame(function () { panel.classList.remove('is-swapping'); });
+      };
+      if (first) { swap(); first = false; } else { panel.classList.add('is-swapping'); setTimeout(swap, 160); }
+      activeId = id;
+    }
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+
+    select('design');
+  })();
+</script>
+</body>
+</html>

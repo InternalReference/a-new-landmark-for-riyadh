@@ -1,0 +1,22 @@
+# ── Publish only the rendered deck ─────────────────────────────────
+# Everything is ignored by default. Only the deck files explicitly
+# allowed below are tracked and pushed to GitHub Pages. Anything new
+# you drop anywhere at the top level stays private automatically.
+
+/*
+
+# --- allow the deck ---
+!/.gitignore
+!/.nojekyll
+!/index.html
+!/01-vision.html
+!/02-plan.html
+!/03-team.html
+!/css/
+!/js/
+!/video/
+!/images/
+
+# --- but keep these out of images/ ---
+/images/External Reference Images/
+/images/example-space*

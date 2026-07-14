@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Plan · Riyadh Tower · External Reference</title>
+<link rel="stylesheet" href="css/style.css" />
+<style>
+  /* =====================================================================
+     CHAPTER 02 · PLAN · Roadmap Gantt
+     Interactive RIBA-phase timeline. Light sandstone re-skin of the
+     TAF timeline pattern: tab + positioned bar per phase, click to expand
+     a detail panel, plus a Conservative / Fast-track toggle that re-lays
+     the bars. Scoped with the rm- prefix so nothing else is touched.
+     ===================================================================== */
+  .rm { max-width: 1080px; margin: 12px auto 0; width: 100%; --rm-tab: 250px; --rm-gap: 18px; }
+
+  /* Compact the section header so more of the Gantt is above the fold */
+  #roadmap { padding-top: 44px !important; }
+  #roadmap .eyebrow { margin-bottom: 10px; }
+  #roadmap h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); margin-bottom: 10px; }
+  #roadmap .lead { margin: 0; font-size: 0.96rem; max-width: 74ch; }
+
+  /* ---------- Scenario toggle ---------- */
+  .rm-toolbar { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 14px; }
+  .rm-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; background: var(--paper-2); }
+  .rm-toggle button {
+    font: inherit; font-size: 0.82rem; font-weight: 600; letter-spacing: 0.03em;
+    padding: 9px 20px; border: none; background: transparent; color: var(--ink-dim);
+    cursor: pointer; transition: background 0.2s ease, color 0.2s ease;
+  }
+  .rm-toggle button + button { border-left: 1px solid var(--line); }
+  .rm-toggle button.is-active { background: var(--gold); color: #fff; }
+  .rm-toggle-note { font-size: 0.82rem; color: var(--ink-dim); max-width: 46ch; line-height: 1.5; }
+  .rm-toggle-note b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- Metrics ---------- */
+  .rm-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+  .rm-metric { border: 1px solid var(--line-soft); background: var(--paper-2); padding: 12px 14px 11px; }
+  .rm-metric-value { font-family: var(--serif); font-size: 1.45rem; color: var(--green); line-height: 1; margin-bottom: 6px; }
+  .rm-metric-label { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-dim); line-height: 1.4; }
+
+  /* ---------- Gantt ---------- */
+  .rm-gantt { margin-bottom: 6px; }
+  /* zone captions above the axis */
+  .rm-zonecaps { display: grid; grid-template-columns: var(--rm-tab) 1fr; gap: var(--rm-gap); align-items: end; margin-bottom: 3px; }
+  .rm-caps { position: relative; height: 14px; }
+  .rm-cap { position: absolute; bottom: 0; transform: translateX(-50%); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.11em; color: var(--ink-dim); white-space: nowrap; }
+  .rm-cap.rm-cap--gate { color: var(--gold); font-weight: 700; }
+  .rm-axis-wrap { display: grid; grid-template-columns: var(--rm-tab) 1fr; align-items: end; }
+  .rm-axis { position: relative; height: 18px; }
+  .rm-axis-tick { position: absolute; bottom: 0; width: 1px; height: 6px; background: var(--line); transform: translateX(-0.5px); }
+  .rm-axis-label { position: absolute; bottom: 8px; transform: translateX(-50%); font-size: 0.64rem; color: var(--ink-dim); letter-spacing: 0.04em; }
+  .rm-baseline { grid-column: 1 / -1; height: 1px; background: var(--line); margin: 0 0 8px; }
+
+  .rm-rows { display: flex; flex-direction: column; gap: 2px; }
+  .rm-row { display: grid; grid-template-columns: var(--rm-tab) 1fr; align-items: center; gap: var(--rm-gap); }
+
+  /* stage dividers */
+  .rm-stage-div { display: grid; grid-template-columns: var(--rm-tab) 1fr; gap: var(--rm-gap); align-items: baseline; margin: 13px 0 3px; }
+  .rm-stage-name { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; color: var(--green); padding-left: 15px; }
+  .rm-stage-sub { font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-dim); }
+  .rm-tab {
+    --tab: var(--gold);
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+    padding: 5px 12px; background: transparent; border: none; border-left: 3px solid transparent;
+    text-align: left; cursor: pointer; color: inherit; font: inherit; width: 100%;
+    transition: background 0.2s ease, border-left-color 0.2s ease;
+  }
+  .rm-tab:hover:not(.is-active) { background: rgba(41,37,31,0.035); border-left-color: color-mix(in srgb, var(--tab) 45%, transparent); }
+  .rm-tab.is-active { background: rgba(41,37,31,0.06); border-left-color: var(--tab); }
+  .rm-tab-name { display: block; font-size: 0.82rem; font-weight: 600; line-height: 1.3; }
+  .rm-tab-meta { display: block; font-size: 0.68rem; color: var(--ink-dim); margin-top: 2px; }
+  .rm-tab-arrow { width: 11px; height: 11px; flex-shrink: 0; color: var(--tab); opacity: 0.25; transition: opacity 0.2s ease, transform 0.2s ease; }
+  .rm-tab:hover:not(.is-active) .rm-tab-arrow { opacity: 0.55; }
+  .rm-tab.is-active .rm-tab-arrow { opacity: 1; transform: translateX(2px); }
+
+  .rm-track { position: relative; height: 24px; }
+  /* the gate zone (plot & investors) runs as a hatched band through every row */
+  .rm-gatecol { position: absolute; top: -1px; bottom: -1px; left: 20%; width: 16%; pointer-events: none;
+    background: repeating-linear-gradient(45deg, rgba(156,123,63,0.14) 0 5px, transparent 5px 10px);
+    border-left: 1px dashed rgba(156,123,63,0.45); border-right: 1px dashed rgba(156,123,63,0.45); }
+  .rm-bar {
+    position: absolute; top: 2px; height: 20px; border-radius: 3px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.04em; border: none;
+    outline: 1.5px solid transparent; outline-offset: 0; user-select: none;
+    transition: left 480ms cubic-bezier(.4,0,.2,1), width 480ms cubic-bezier(.4,0,.2,1), filter 200ms ease, transform 200ms ease, outline-color 200ms ease, box-shadow 200ms ease;
+  }
+  .rm-bar:hover:not(.is-active) { filter: brightness(1.08); transform: scaleY(1.12); z-index: 2; }
+  .rm-bar.is-active { outline-color: var(--ink); z-index: 3; box-shadow: var(--shadow); }
+  .rm-bar.rm-ongoing { opacity: 0.5; border: 1px dashed rgba(255,255,255,0.7); }
+  /* gate row's bar: a labelled marker over the hatched band, not a solid duration bar */
+  .rm-bar--gate { background: var(--paper) !important; color: var(--gold); border: 1px dashed var(--gold);
+    font-size: 0.58rem; font-weight: 700; letter-spacing: 0.05em; }
+  .rm-bar--gate.is-active { outline-color: var(--gold); }
+  .rm-row--gate .rm-tab-name { color: var(--gold); }
+
+  /* ---------- Detail panel ---------- */
+  .rm-panel-wrap { margin-top: 26px; }
+  .rm-panel {
+    background: var(--paper); border: 1px solid var(--line); border-left: 3px solid var(--gold);
+    padding: 26px 28px; transition: border-left-color 300ms ease, opacity 200ms ease, transform 300ms ease;
+  }
+  .rm-panel.is-swapping { opacity: 0; transform: translateY(6px); }
+  .rm-panel-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 0 18px; padding: 0 0 14px; border-bottom: 1px solid var(--line-soft); }
+  .rm-nav-btn { display: inline-flex; align-items: center; gap: 9px; background: none; border: none; padding: 4px 0; font: inherit; font-size: 0.72rem; letter-spacing: 0.04em; color: var(--ink-dim); cursor: pointer; transition: color 0.2s ease; }
+  .rm-nav-btn:hover { color: var(--ink); }
+  .rm-nav-btn.is-hidden { visibility: hidden; pointer-events: none; }
+  .rm-nav-arrow { width: 13px; height: 13px; flex-shrink: 0; transition: transform 0.2s ease; }
+  .rm-nav-btn--prev:hover .rm-nav-arrow { transform: translateX(-3px); }
+  .rm-nav-btn--next:hover .rm-nav-arrow { transform: translateX(3px); }
+  .rm-nav-phase { font-weight: 600; }
+
+  .rm-panel-head { display: flex; align-items: baseline; justify-content: space-between; gap: 22px; margin-bottom: 6px; flex-wrap: wrap; }
+  .rm-panel-name { font-family: var(--serif); font-size: 1.5rem; font-weight: 400; color: var(--ink); margin: 0; }
+  .rm-panel-range { font-size: 0.78rem; color: var(--ink-dim); letter-spacing: 0.02em; white-space: nowrap; }
+  .rm-panel-stage { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; margin: 0 0 16px; }
+  .rm-panel-desc { font-size: 0.95rem; color: var(--ink-dim); line-height: 1.65; margin: 0 0 20px; max-width: 78ch; }
+
+  .rm-list { list-style: none; padding: 0; margin: 0 0 4px; }
+  .rm-item { display: grid; grid-template-columns: 12px 1fr; align-items: start; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 0.86rem; }
+  .rm-item:last-child { border-bottom: none; }
+  .rm-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 7px; }
+  .rm-item-text { color: var(--ink); line-height: 1.5; }
+
+  .rm-role { margin-top: 16px; font-size: 0.86rem; color: var(--ink); }
+  .rm-role b { text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.66rem; color: var(--gold); display: block; margin-bottom: 4px; }
+
+  .rm-gate { margin-top: 18px; padding: 13px 16px; font-size: 0.84rem; line-height: 1.55; color: var(--ink); }
+  .rm-gate--go { background: rgba(47,93,63,0.08); border-left: 2px solid var(--green); }
+  .rm-gate--caution { background: rgba(184,146,78,0.10); border-left: 2px solid var(--gold); }
+  .rm-gate-label { display: inline-block; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-right: 8px; padding: 2px 8px; border-radius: 2px; }
+  .rm-gate--go .rm-gate-label { color: #fff; background: var(--green); }
+  .rm-gate--caution .rm-gate-label { color: #fff; background: var(--gold); }
+
+  /* ---------- Variance note ---------- */
+  .rm-variance { margin-top: 22px; background: var(--bg-alt); border-left: 3px solid var(--gold); padding: 15px 18px; font-size: 0.86rem; color: var(--ink-dim); line-height: 1.6; }
+  .rm-variance b { color: var(--ink); font-weight: 600; }
+
+  @media (max-width: 820px) {
+    .rm { --rm-tab: 140px; --rm-gap: 10px; }
+    .rm-metrics { grid-template-columns: repeat(2, 1fr); }
+    .rm-tab { padding: 8px 9px; }
+    .rm-tab-name { font-size: 0.76rem; }
+  }
+
+  /* =====================================================================
+     CHAPTER 02 · PLAN · Business Case
+     Sober, indicative only. No headline total. Two proportional bars
+     (funding and cost), sourced anchors, an openly-stated key risk, and
+     the Phase 1 deliverable. Scoped with the bc- prefix.
+     ===================================================================== */
+  #business-case { padding-top: 44px !important; }
+  #business-case .eyebrow { margin-bottom: 10px; }
+  #business-case h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); margin-bottom: 10px; }
+  #business-case .lead { margin: 0; font-size: 0.96rem; max-width: 84ch; }
+  .bc { max-width: 1080px; margin: 22px auto 0; width: 100%; }
+  .bc-block { margin-top: 26px; }
+  .bc-h4 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.14em; font-weight: 700; color: var(--gold); margin: 0 0 14px; }
+
+  /* Two proportional bars */
+  .bc-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .bc-bar { display: flex; height: 30px; border-radius: 3px; overflow: hidden; border: 1px solid var(--line); }
+  .bc-seg { height: 100%; }
+  .bc-legend { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 7px; }
+  .bc-legend li { display: flex; align-items: flex-start; gap: 10px; font-size: 0.82rem; line-height: 1.4; }
+  .bc-sw { width: 11px; height: 11px; border-radius: 2px; margin-top: 4px; flex-shrink: 0; }
+  .bc-legend b { font-weight: 600; }
+  .bc-legend .role { color: var(--ink-dim); }
+  .bc-takeaway { margin: 18px 0 0; font-size: 0.9rem; color: var(--ink); }
+  .bc-takeaway b { color: var(--green); font-weight: 600; }
+  .bc-scale { font-size: 0.72rem; color: var(--ink-dim); margin: 8px 0 0; font-style: italic; }
+
+  /* Indicative construction unit rates (sourced, per sqm). No grand total. */
+  .bc-rates-wrap { margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 34px; align-items: start; }
+  .bc-rates { width: 100%; border-collapse: collapse; }
+  .bc-rates thead th { text-align: left; font-size: 0.64rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-dim); font-weight: 700; padding: 0 12px 8px 0; }
+  .bc-rates thead th.r { text-align: right; padding-right: 0; }
+  .bc-rates td { padding: 9px 12px 9px 0; border-top: 1px solid var(--line-soft); font-size: 0.88rem; color: var(--ink); vertical-align: baseline; }
+  .bc-rates td.rate { text-align: right; font-family: var(--serif); font-size: 1rem; color: var(--green); white-space: nowrap; padding-right: 0; }
+  .bc-rates td.use small { display: block; font-size: 0.72rem; color: var(--ink-dim); margin-top: 1px; }
+  .bc-rate-note { font-size: 0.84rem; color: var(--ink-dim); line-height: 1.6; }
+  .bc-rate-note b { color: var(--ink); font-weight: 600; }
+  .bc-rate-dis { margin-top: 12px; font-size: 0.78rem; font-style: italic; color: var(--ink-dim); line-height: 1.5; }
+
+  /* Why it holds */
+  .bc-hold-points { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .bc-hold-points li { display: grid; grid-template-columns: 8px 1fr; gap: 12px; font-size: 0.9rem; color: var(--ink); line-height: 1.55; }
+  .bc-hold-points .d { width: 7px; height: 7px; border-radius: 50%; margin-top: 8px; background: var(--green); }
+
+  /* Sourced anchors */
+  .bc-anchors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+  .bc-anchor { border: 1px solid var(--line-soft); background: var(--paper-2); padding: 15px 16px; }
+  .bc-anchor .v { font-family: var(--serif); font-size: 1.35rem; color: var(--green); line-height: 1.05; margin-bottom: 7px; }
+  .bc-anchor .l { font-size: 0.78rem; color: var(--ink-dim); line-height: 1.45; }
+  .bc-anchor .l b { color: var(--ink); font-weight: 600; }
+
+  /* Openly-stated key risk */
+  .bc-note { margin-top: 20px; background: var(--bg-alt); border-left: 3px solid var(--gold); padding: 15px 18px; font-size: 0.88rem; color: var(--ink-dim); line-height: 1.6; }
+  .bc-note b { color: var(--ink); font-weight: 600; }
+
+  /* Phase 1 deliverable */
+  .bc-steps { list-style: none; counter-reset: bcs; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 28px; }
+  .bc-steps li { counter-increment: bcs; display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start; font-size: 0.88rem; color: var(--ink); line-height: 1.45; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
+  .bc-steps li::before { content: counter(bcs); font-family: var(--serif); font-size: 1rem; color: var(--gold); line-height: 1.2; }
+  .bc-steps li:nth-last-child(-n+1) { border-bottom: none; }
+  .bc-close { margin: 16px 0 0; font-size: 0.86rem; color: var(--ink-dim); }
+
+  @media (max-width: 820px) {
+    .bc-bars { grid-template-columns: 1fr; gap: 26px; }
+    .bc-anchors { grid-template-columns: 1fr; }
+    .bc-steps { grid-template-columns: 1fr; }
+    .bc-rates-wrap { grid-template-columns: 1fr; gap: 18px; }
+  }
+
+  /* =====================================================================
+     CHAPTER 02 · PLAN · Risks (register)
+     Sober, everything visible. Naming the risks is the plan. bc/rk scoped.
+     ===================================================================== */
+  #risk { padding-top: 44px !important; }
+  #risk .eyebrow { margin-bottom: 10px; }
+  #risk h2 { font-size: clamp(1.5rem, 2.8vw, 2.1rem); margin-bottom: 10px; }
+  #risk .lead { margin: 0; font-size: 0.96rem; max-width: 82ch; }
+  .rk { max-width: 1080px; margin: 20px auto 0; width: 100%; }
+  .rk-list { display: grid; gap: 0; }
+  .rk-row { display: grid; grid-template-columns: 300px 1fr; gap: 26px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line-soft); }
+  .rk-row:first-child { border-top: none; }
+  .rk-sev { display: inline-flex; align-items: center; gap: 7px; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.11em; font-weight: 700; color: var(--ink-dim); margin-bottom: 6px; }
+  .rk-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+  .rk-name { font-size: 0.94rem; font-weight: 600; color: var(--ink); line-height: 1.3; }
+  .rk-name small { display: block; font-weight: 400; font-size: 0.8rem; color: var(--ink-dim); margin-top: 4px; line-height: 1.45; }
+  .rk-resp { font-size: 0.9rem; color: var(--ink); line-height: 1.6; }
+  .rk-resp b { color: var(--green); font-weight: 600; }
+
+  @media (max-width: 820px) {
+    .rk-row { grid-template-columns: 1fr; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<a href="index.html#menu" class="back-btn" id="backBtn">‹&nbsp; Contents</a>
+
+<!-- ===================== PLAN COVER ===================== -->
+<section class="chapter-open slide">
+  <p class="kicker">Chapter 02</p>
+  <h1>Plan</h1>
+  <p class="intro">The delivery path from site to opening: eight phases, their durations, the approvals required, and the business case behind them.</p>
+  <a href="#plan-index" class="scroll-cue" style="position:absolute; bottom:34px; left:8vw; transform:none;">
+    <span>Index</span><span class="arrow"></span>
+  </a>
+</section>
+
+<!-- ===================== PLAN INDEX ===================== -->
+<section class="vindex slide" id="plan-index">
+  <h2>Plan</h2>
+  <ul class="toc">
+    <li><a href="#roadmap"><span class="tnum">01</span><span class="ttl">The Roadmap</span><span class="tds">Eight phases from site acquisition to opening, mapped to the RIBA Plan of Work.</span></a></li>
+    <li><a href="#business-case"><span class="tnum">02</span><span class="ttl">The Business Case</span><span class="tds">The indicative cost and funding structure, and the Phase 1 work that confirms it.</span></a></li>
+    <li><a href="#risk"><span class="tnum">03</span><span class="ttl">The Risks</span><span class="tds">The principal delivery risks and the mitigation for each.</span></a></li>
+  </ul>
+</section>
+
+<!-- ===================== 01 ROADMAP ===================== -->
+<section class="section slide" id="roadmap" style="justify-content:flex-start;">
+  <p class="eyebrow green">01 · The Roadmap</p>
+  <h2>A pre-concept, then delivery.</h2>
+  <p class="lead">A short pre-concept, with no site work, an engineering overlay for credibility and the key interior views, is enough to raise a plot and investors. The full design, from schematic onward, follows funding, re-based on the real plot, with us as design guardian. Select a phase for its scope.</p>
+
+  <div class="rm">
+
+    <div class="rm-toolbar">
+      <div class="rm-toggle" id="rmToggle" role="group" aria-label="Timeline scenario">
+        <button type="button" class="is-active" data-scn="cons">Conservative</button>
+        <button type="button" data-scn="fast">Fast-tracked</button>
+      </div>
+      <p class="rm-toggle-note"><b>Conservative is the figure we present.</b> Fast-tracked shows the Delivery time recoverable by running approvals and procurement in parallel with design.</p>
+    </div>
+
+    <div class="rm-metrics">
+      <div class="rm-metric"><div class="rm-metric-value">~10 wks</div><div class="rm-metric-label">Pre-concept, no plot needed</div></div>
+      <div class="rm-metric"><div class="rm-metric-value">6&ndash;24 mo</div><div class="rm-metric-label">Plot &amp; procurement, client-led</div></div>
+      <div class="rm-metric"><div class="rm-metric-value" id="rmDeliv">~6 yrs</div><div class="rm-metric-label">Funding to opening (Delivery)</div></div>
+      <div class="rm-metric"><div class="rm-metric-value">2034</div><div class="rm-metric-label">World Cup, if funded by ~2028</div></div>
+    </div>
+
+    <div class="rm-gantt">
+      <div class="rm-zonecaps">
+        <div></div>
+        <div class="rm-caps" id="rmCaps"></div>
+      </div>
+      <div class="rm-axis-wrap">
+        <div></div>
+        <div class="rm-axis" id="rmAxis"></div>
+      </div>
+      <div class="rm-baseline"></div>
+      <div class="rm-rows" id="rmRows"></div>
+    </div>
+
+    <div class="rm-panel-wrap">
+      <article class="rm-panel" id="rmPanel">
+        <div class="rm-panel-nav">
+          <button type="button" class="rm-nav-btn rm-nav-btn--prev" id="rmPrev">
+            <svg class="rm-nav-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3 L5 8 L10 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><span>Previous · </span><span class="rm-nav-phase" id="rmPrevName"></span></span>
+          </button>
+          <button type="button" class="rm-nav-btn rm-nav-btn--next" id="rmNext">
+            <span><span>Next · </span><span class="rm-nav-phase" id="rmNextName"></span></span>
+            <svg class="rm-nav-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3 L11 8 L6 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="rm-panel-head">
+          <h3 class="rm-panel-name" id="rmName">Phase</h3>
+          <div class="rm-panel-range" id="rmRange"></div>
+        </div>
+        <p class="rm-panel-stage" id="rmStage"></p>
+        <p class="rm-panel-desc" id="rmDesc"></p>
+        <ul class="rm-list" id="rmItems"></ul>
+        <div class="rm-role"><b>Lead Design Consultant</b><span id="rmRole"></span></div>
+        <div id="rmGateSlot"></div>
+      </article>
+    </div>
+
+    <aside class="rm-variance">
+      <b>The first commitment is deliberately small.</b> A pre-concept without site work is fast and low-cost, and it is all that is needed to make the tower investable; the heavy design follows funding, on a real plot. How long the plot and investor search then takes is market-led, shown as an indicative six to twenty-four months, and it is the client's to close. The Delivery clock only starts at land control and financial close. Within it, construction is the highest-variance phase, around four years; the closest Gulf comparable, One Za'abeel in Dubai, took roughly eight years. The conservative figure is the one presented.
+    </aside>
+
+  </div>
+  <p class="src"><b>Sources</b><span class="s">RIBA Plan of Work, stages 0 to 7.</span><span class="s">Real estate development process and building-permit timelines, Saudi Arabia.</span><span class="s">Durations triangulated from CTBUH benchmarks and mixed-use supertall comparables.</span></p>
+</section>
+
+<!-- ===================== 02 BUSINESS CASE ===================== -->
+<section class="section slide" id="business-case" style="justify-content:flex-start;">
+  <p class="eyebrow green">02 · The Business Case</p>
+  <h2>Cost, funding and feasibility.</h2>
+  <p class="lead">Financial structuring is not our discipline. What follows is the indicative shape of the business case, not a valuation. The full Business and Investment Plan is the first commission of Phase 1, authored by a specialist feasibility advisor and coordinated by the Lead Design Consultant.</p>
+
+  <div class="bc">
+
+    <!-- Funding and cost, as proportional shape -->
+    <div class="bc-block">
+      <div class="bc-bars">
+        <div>
+          <p class="bc-h4">Where the capital comes from</p>
+          <div class="bc-bar" aria-hidden="true">
+            <div class="bc-seg" style="width:35%; background:#2F5D3F"></div>
+            <div class="bc-seg" style="width:28%; background:#5E8C57"></div>
+            <div class="bc-seg" style="width:26%; background:#B8924E"></div>
+            <div class="bc-seg" style="width:11%; background:#8a9a6a"></div>
+          </div>
+          <ul class="bc-legend">
+            <li><span class="bc-sw" style="background:#2F5D3F"></span><span><b>Equity.</b> <span class="role">The client's own capital, the base of the stack.</span></span></li>
+            <li><span class="bc-sw" style="background:#5E8C57"></span><span><b>Development debt.</b> <span class="role">Construction finance, sized against confirmed pre-sales and leases.</span></span></li>
+            <li><span class="bc-sw" style="background:#B8924E"></span><span><b>Off-plan pre-sales.</b> <span class="role">Around 430 branded residences, sold during the build, inject capital directly.</span></span></li>
+            <li><span class="bc-sw" style="background:#8a9a6a"></span><span><b>Pre-leasing and operators.</b> <span class="role">Office pre-leases and a hotel-operator deal lock income before completion.</span></span></li>
+          </ul>
+        </div>
+        <div>
+          <p class="bc-h4">Where it goes</p>
+          <div class="bc-bar" aria-hidden="true">
+            <div class="bc-seg" style="width:20%; background:#9C7B3F"></div>
+            <div class="bc-seg" style="width:58%; background:#6E9E67"></div>
+            <div class="bc-seg" style="width:14%; background:#c2a668"></div>
+            <div class="bc-seg" style="width:8%; background:#b0b89a"></div>
+          </div>
+          <ul class="bc-legend">
+            <li><span class="bc-sw" style="background:#9C7B3F"></span><span><b>Land.</b> <span class="role">The most site-dependent variable, a purchase or a fund-entry route.</span></span></li>
+            <li><span class="bc-sw" style="background:#6E9E67"></span><span><b>Hard construction.</b> <span class="role">The dominant cost. The living facade carries a genuine premium, on the order of a few percent, confirmed in Phase 1.</span></span></li>
+            <li><span class="bc-sw" style="background:#c2a668"></span><span><b>Soft costs.</b> <span class="role">Design, engineering, management, approvals and marketing.</span></span></li>
+            <li><span class="bc-sw" style="background:#b0b89a"></span><span><b>Finance and contingency.</b> <span class="role">Interest during construction, and a real contingency for a first-of-its-kind envelope.</span></span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="bc-scale">Bars show indicative proportion, not to scale.</p>
+
+      <p class="bc-h4" style="margin-top:24px;">Construction cost, published Riyadh rates</p>
+      <div class="bc-rates-wrap">
+        <table class="bc-rates">
+          <thead><tr><th>Use</th><th class="r">SAR per sqm</th></tr></thead>
+          <tbody>
+            <tr><td class="use">Grade-A office <small>up to 20 floors</small></td><td class="rate">~9,000</td></tr>
+            <tr><td class="use">High-rise residential</td><td class="rate">~8,500</td></tr>
+            <tr><td class="use">Hotel, 5-star and above</td><td class="rate">17,000 to 22,500</td></tr>
+            <tr><td class="use">Riyadh average, all sectors <small>up around 20% on 2024</small></td><td class="rate">~11,670</td></tr>
+          </tbody>
+        </table>
+        <div class="bc-rate-note">
+          <p>Two premiums sit on top of these mid-rise rates. A 300-metre tower carries a structural premium, on the order of tens of percent, and the living facade adds around 5%. Both are directional: no Saudi supertall benchmark is published, so they are confirmed in the Phase 1 cost model.</p>
+          <p class="bc-rate-dis">Published unit rates for orientation, not a cost plan. A total depends on the final mix, specification, land and finance, none of which are fixed at this stage.</p>
+        </div>
+      </div>
+
+      <p class="bc-takeaway">The mixed-use programme also works as a financing structure. Residential sales provide capital during construction, and signed office and hotel leases improve the terms of the construction debt.</p>
+    </div>
+
+    <!-- Why it holds -->
+    <div class="bc-block">
+      <p class="bc-h4">Revenue and resilience</p>
+      <ul class="bc-hold-points">
+        <li><span class="d"></span><span>Residences are a one-time capital event, the least market-correlated of the six uses, and they fund the build.</span></li>
+        <li><span class="d"></span><span>Office, serviced apartments, hotel and retail produce recurring income, a blended stabilised yield benchmarked against Riyadh comparables. Office and hotel demand are correlated, so the genuine diversification is pairing them with residential sales and local-consumer retail.</span></li>
+      </ul>
+
+      <div class="bc-anchors">
+        <div class="bc-anchor"><div class="v">SAR 3,630 /sqm&middot;yr</div><div class="l"><b>Prime Grade-A office rent</b>, at near-full occupancy. Riyadh, Q1 2026.</div></div>
+        <div class="bc-anchor"><div class="v">24 to 54%</div><div class="l"><b>Branded-residence price premium</b> over comparable stock, by location. Savills, 2025 to 2026.</div></div>
+        <div class="bc-anchor"><div class="v">2028 to 2030</div><div class="l"><b>Office and hotel supply peak.</b> We deliver after it clears, and size the hotel conservatively.</div></div>
+      </div>
+
+      <p class="bc-note"><b>The load-bearing assumption is the pace of off-plan residential sales.</b> Riyadh transaction volumes fell sharply through early 2026, while prices continued to rise. The slowdown is in liquidity, and values have not declined. The Phase 1 model treats absorption as the primary sensitivity and gates the go or no-go decision on a downside absorption case. No absorption figure is presented before the demand study exists.</p>
+    </div>
+
+    <!-- What Phase 1 delivers -->
+    <div class="bc-block">
+      <p class="bc-h4">What Phase 1 delivers</p>
+      <ul class="bc-steps">
+        <li><span>Independent market and demand study, specific to the chosen plot</span></li>
+        <li><span>Detailed development-cost estimate, with the cost consultant</span></li>
+        <li><span>Ranged, sensitivity-tested financial model</span></li>
+        <li><span>Capital-stack and financing strategy</span></li>
+        <li><span>Risk-adjusted go or no-go recommendation</span></li>
+      </ul>
+      <p class="bc-close">Authored by a named feasibility advisor, coordinated and integrated by the Lead Design Consultant.</p>
+    </div>
+
+  </div>
+  <p class="src"><b>Sources</b><span class="s">Knight Frank, Destination Saudi 2026.</span><span class="s">Savills, Branded Residences Report 2025 to 2026.</span><span class="s">JLL and Turner &amp; Townsend, KSA market intelligence 2025.</span><span class="s">Dar Anan, Riyadh construction cost 2025.</span><span class="s">STR and CoStar, hotel forecasts.</span><span class="s">REGA transaction data, Q1 2026.</span></p>
+</section>
+
+<!-- ===================== 03 RISKS ===================== -->
+<section class="section slide" id="risk" style="justify-content:flex-start;">
+  <p class="eyebrow green">03 · The Risks</p>
+  <h2>Key risks and mitigation.</h2>
+  <p class="lead">The main risks a project like this carries, with the mitigation for each set out in the plan.</p>
+
+  <div class="rk">
+    <div class="rk-list">
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#b5623a"></span>High</span><div class="rk-name">Land access<small>The strongest sites, on the park edge, are not sold to private buyers outright.</small></div></div>
+        <div class="rk-resp"><b>A Phase 1 land strategy through joint venture or fund entry,</b> with a privately acquirable fallback site carried in parallel. Land control is the first site-selection filter.</div>
+      </div>
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#b5623a"></span>High</span><div class="rk-name">Financing<small>A tower at this scale is hard to fund, and this is where megaprojects stall.</small></div></div>
+        <div class="rk-resp"><b>Off-plan residential sales fund construction and pre-leasing secures the debt.</b> The full investment plan is the first Phase 1 commission.</div>
+      </div>
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#c28a45"></span>Medium-High</span><div class="rk-name">Sector oversupply<small>Office and hotel, together 37% of the programme, face a Riyadh supply peak in 2028 to 2030.</small></div></div>
+        <div class="rk-resp"><b>Deliver after the peak clears, and size the hotel conservatively.</b> The genuine diversification is pairing the correlated office and hotel with residential sales and local-consumer retail. Floors are reprogrammable.</div>
+      </div>
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#c28a45"></span>Medium-High</span><div class="rk-name">Green maintenance<small>Vertical greenery fails through poor long-term operation, as seen at Chengdu.</small></div></div>
+        <div class="rk-resp"><b>A desert-credentialed horticulture partner and a 30-year maintenance model funded from day one,</b> with access and species chosen for upkeep.</div>
+      </div>
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#a79f52"></span>Medium</span><div class="rk-name">Timeline<small>The front-end, land and finance, can slip, and the living facade is complex.</small></div></div>
+        <div class="rk-resp"><b>A conservative 7 to 8 year primary case, with the clock starting at financial close and land control,</b> and a buffer before the 2034 World Cup.</div>
+      </div>
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#a79f52"></span>Medium</span><div class="rk-name">Approvals<small>Environmental impact assessment, aviation clearance and landmark floor-area ratio all require review.</small></div></div>
+        <div class="rk-resp"><b>Early authority engagement, a local Architect of Record, and approvals run in parallel with design,</b> not after it.</div>
+      </div>
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#a79f52"></span>Medium</span><div class="rk-name">Capability<small>This would be the lead designer's first supertall.</small></div></div>
+        <div class="rk-resp"><b>Met openly: a design-led vision paired with a top-tier engineering partner and a proven lead-consultant operating model.</b> The engineering spine de-risks delivery.</div>
+      </div>
+
+      <div class="rk-row">
+        <div class="rk-head"><span class="rk-sev"><span class="rk-dot" style="background:#7fa46a"></span>Low-Medium</span><div class="rk-name">Competition<small>A state-backed megatall has been proposed elsewhere in Riyadh.</small></div></div>
+        <div class="rk-resp"><b>We compete on livability, greenery and urban integration.</b> The height race belongs to the state-backed megatalls, and a private client has no reason to enter it.</div>
+      </div>
+
+    </div>
+  </div>
+  <p class="src"><b>Sources</b><span class="s">JLL, KSA office and hotel supply outlook.</span><span class="s">Rise Tower, public reporting.</span><span class="s">Vertical-greenery maintenance precedents, WOHA and others.</span></p>
+</section>
+
+<!-- ===================== CLOSING: PLAN ===================== -->
+<section class="closing slide">
+  <p class="eyebrow">Plan</p>
+  <h2 class="pbn-title">In summary.</h2>
+
+  <div class="pbn">
+    <div class="pbn-item">
+      <span class="pbn-k">Roadmap</span>
+      <p>Eight phases from site to opening, with durations stated conservatively and the clock starting at financial close and land control.</p>
+    </div>
+    <div class="pbn-item">
+      <span class="pbn-k">Business case</span>
+      <p>Residential sales fund construction and signed leases secure the debt. The full investment plan is the first Phase 1 commission.</p>
+    </div>
+    <div class="pbn-item">
+      <span class="pbn-k">Risk</span>
+      <p>Every material risk named, with a mitigation set out in the plan.</p>
+    </div>
+  </div>
+
+  <a href="index.html#menu" class="menu-return-btn">Back to Contents</a>
+</section>
+
+<script src="js/script.js"></script>
+<script>
+  // Back button: Plan index while in content, Contents while on cover/index.
+  (function () {
+    var btn = document.getElementById('backBtn');
+    var content = document.getElementById('roadmap');
+    if (btn && content) {
+      var update = function () {
+        var inContent = content.getBoundingClientRect().top < window.innerHeight * 0.5;
+        btn.setAttribute('href', inContent ? '#plan-index' : 'index.html#menu');
+        btn.innerHTML = inContent ? '‹&nbsp; Plan' : '‹&nbsp; Contents';
+      };
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    }
+  })();
+
+  // ---------- Roadmap Gantt ----------
+  (function () {
+    // Two clocks on one axis: a Pre-gate zone (months), a client-led Gate band,
+    // and a Delivery zone (years from funding). Each maps to its own % band.
+    var VMO = 6, DMO = 84;                       // pre-gate months, delivery months (7 yrs)
+    var VZ = [0, 20], GZ = [20, 36], DZ = [36, 100];   // horizontal zones, %
+    function pv(m) { return VZ[0] + (m / VMO) * (VZ[1] - VZ[0]); }
+    function pd(m) { return DZ[0] + (m / DMO) * (DZ[1] - DZ[0]); }
+
+    var phases = [
+      { id:'pc', num:'S1', group:'pre', z:'v', r:[0,2.5],
+        div:{ name:'Stage 1 · Pre-Concept', sub:'no plot required' },
+        name:'Pre-Concept', stage:'RIBA 1 · no site analysis', color:'#B8924E',
+        duration:'~10 weeks',
+        desc:'A pre-concept that deliberately excludes all site analysis and validation. Enough to make the idea investable, and no more: the form and programme response, the key interior views, and an engineering overlay that shows it is buildable.',
+        items:[
+          'Pre-concept design: the form, the vertical-forest idea and the programme response, with no site work',
+          'Interior of the main areas: a small set of key views',
+          'Engineering validation overlay: structure, MEP and circulation, for credibility'
+        ],
+        role:'Leads the pre-concept.',
+        gate:{ kind:'caution', title:'Scoped to stay fundable', text:'It stops at pre-concept on purpose. A full schematic on no site is neither useful nor something a client will fund; that work moves to Delivery, on the real plot.' } },
+
+      { id:'vp', num:'VP', group:'package', z:'v', r:[2.5,5.5],
+        div:{ name:'Vision Package', sub:'the assets that raise the money' },
+        name:'Vision Package', stage:'Investment assets', color:'#c2a668',
+        duration:'~2 to 3 months',
+        desc:'The pre-concept becomes the assets the client takes to market: a physical maquette, a film, an immersive VR walkthrough and an investment prospectus.',
+        items:[
+          'Physical maquette and presentation model',
+          'CGI film and immersive VR walkthrough',
+          'Investment prospectus: the concept, the programme and the indicative business case'
+        ],
+        role:'Directs the vision and the narrative.', gate:null },
+
+      { id:'gate', num:'', group:'gate', z:'gate', name:'Plot & Procurement', stage:'Client-led · design on hold', color:'#9C7B3F',
+        duration:'6 to 24 months, indicative',
+        desc:'The client takes the Vision Package to market and secures a plot and the investors, then procures the wider team. Client-led, and outside a fixed design programme. We support with rapid feasibility on candidate plots, tested against the site scorecard from the Vision.',
+        items:[
+          'Market the vision to landowners, funds and investors',
+          'Test candidate plots against the site scorecard: 40-metre frontage, 3 hectares, metro and green adjacency',
+          'Secure land control and financial close; procure the wider consultant team'
+        ],
+        role:'Supports the search with candidate-plot feasibility.',
+        gate:{ kind:'caution', title:'Design guardianship', text:'The vision is ours. Delivery proceeds with External Reference as design guardian; the living-facade concept cannot be carried faithfully by another team. Land control and financial close start the Delivery clock.' } },
+
+      { id:'d1', num:'D1', group:'delivery', z:'d', cons:[0,6], fast:[0,5],
+        div:{ name:'Stage 2 · Delivery', sub:'clock starts at funding' },
+        name:'Concept Adaptation & Schematic', stage:'RIBA 2 · re-based on the plot', color:'#5E8C57',
+        duration:'5 to 6 months',
+        desc:'Now there is a real site. The pre-concept is adapted to the plot and developed to full concept and schematic design, with the business plan confirmed against the actual site and funding, and the full consultant team appointed.',
+        items:[
+          'Adapt the concept to the real plot: orientation, regulations, ground, setbacks',
+          'Develop to schematic: massing, floor plates, structural and facade strategy, area schedule',
+          'Confirm the Business and Investment Plan; appoint the full team'
+        ],
+        role:'Leads the design, re-based on the site.',
+        gate:{ kind:'caution', title:'Gate · Feasibility re-confirmed', text:'Delivery proceeds only if the business plan holds against the real plot and the secured funding.' } },
+
+      { id:'d2', num:'D2', group:'delivery', z:'d', cons:[6,15], fast:[5,12], name:'Design Development & Approvals', stage:'RIBA 3 · Spatial Coordination', color:'#4E7F55',
+        duration:'6 to 9 months',
+        desc:'The concept is developed into a coordinated, buildable scheme. Approvals and the environmental impact assessment run in parallel with the design.',
+        items:[
+          'Multi-disciplinary coordination across all engineering disciplines',
+          'Environmental Impact Assessment, 60 to 180 days, and preliminary site approval',
+          'Wind-tunnel testing and facade mock-ups'
+        ],
+        role:'Leads and coordinates the design team.',
+        gate:{ kind:'caution', title:'Gate · Environmental Impact Assessment', text:'Duration is category-dependent. Running it in parallel with design is where the fast-track time is recovered.' } },
+
+      { id:'d3', num:'D3', group:'delivery', z:'d', cons:[15,27], fast:[12,22], name:'Technical Design & Tender', stage:'RIBA 4 · Technical Design', color:'#3f6f49',
+        duration:'9 to 12 months, procurement overlaps',
+        desc:'All packages are finalised for construction and tender. The main contractor is procured and the building permit secured. Enabling works are packaged to start early.',
+        items:[
+          'Detailed design, specifications and tender documents',
+          'Main-contractor procurement, overlapping technical design',
+          'Building permit secured; enabling-works package released'
+        ],
+        role:'Leads the technical design and the tender.',
+        gate:{ kind:'go', title:'Gate · Building permit', text:'Construction does not begin until the permit is issued.' } },
+
+      { id:'d4', num:'D4', group:'delivery', z:'d', cons:[25,73], fast:[20,62], name:'Construction', stage:'RIBA 5 · Construction', color:'#2F5D3F',
+        duration:'3.5 to 4.5 years',
+        desc:'The longest and highest-variance phase. Enabling and substructure, then superstructure and core, then facade, services, fit-out and the planting of the vertical forest.',
+        items:[
+          'Enabling, piling and substructure, 6 to 9 months',
+          'Superstructure and core, 18 to 24 months, a floor every few days at peak',
+          'Facade, MEP, fit-out, vertical-forest planting, testing and commissioning'
+        ],
+        role:'Safeguards the design on site.', gate:null },
+
+      { id:'d5', num:'D5', group:'delivery', z:'d', cons:[67,75], fast:[56,66], name:'Handover & Opening', stage:'RIBA 6 · Handover', color:'#6E9E67',
+        duration:'6 to 12 months, overlaps construction',
+        desc:'Testing, commissioning and snagging, the occupation certificate, phased handover, and the public opening of the podium and observation levels. Overlaps the final months of construction.',
+        items:[
+          'Testing, commissioning and snagging',
+          'Occupation certificate and phased handover',
+          'Public opening of the podium and observation deck'
+        ],
+        role:'Carries the design intent through to completion.',
+        gate:{ kind:'go', title:'Gate · Opening', text:'Ahead of the 2034 World Cup if land and funding are secured by around 2028.' } },
+
+      { id:'d6', num:'D6', group:'delivery', z:'d', cons:[75,84], fast:[66,84], ongoing:true, name:'In Use & Operation', stage:'RIBA 7 · Use', color:'#7FA978',
+        duration:'ongoing',
+        desc:'The building is open and operating. The vertical forest enters a funded, long-term horticultural management regime, on which its survival depends.',
+        items:[
+          'Operation and asset management',
+          'Horticultural management of the vertical forest',
+          'Performance verification against the sustainability targets'
+        ],
+        role:'Advises on post-occupancy and design intent.', gate:null }
+    ];
+
+    var SCN = { cons:{ deliv:'~6 yrs' }, fast:{ deliv:'~5.5 yrs' } };
+    var scenario = 'cons';
+
+    var axisEl = document.getElementById('rmAxis');
+    var capsEl = document.getElementById('rmCaps');
+    var rowsEl = document.getElementById('rmRows');
+    if (!axisEl || !rowsEl) return;
+
+    // ---- Axis: vision months, then delivery years ----
+    function addTick(pct, label) {
+      var t = document.createElement('div'); t.className = 'rm-axis-tick'; t.style.left = pct + '%'; axisEl.appendChild(t);
+      var l = document.createElement('div'); l.className = 'rm-axis-label'; l.style.left = pct + '%'; l.textContent = label; axisEl.appendChild(l);
+    }
+    [0,3,6].forEach(function (m) { addTick(pv(m), String(m)); });
+    [0,1,2,3,4,5,6,7].forEach(function (y) { addTick(pd(y * 12), String(y)); });
+
+    if (capsEl) {
+      function addCap(pct, text, gate) {
+        var c = document.createElement('div'); c.className = 'rm-cap' + (gate ? ' rm-cap--gate' : '');
+        c.style.left = pct + '%'; c.textContent = text; capsEl.appendChild(c);
+      }
+      addCap((VZ[0] + VZ[1]) / 2, 'Pre-concept · months');
+      addCap((GZ[0] + GZ[1]) / 2, 'Gate', true);
+      addCap((DZ[0] + DZ[1]) / 2, 'From funding · years');
+    }
+
+    // ---- Rows, with stage dividers ----
+    var bars = {};
+    phases.forEach(function (p) {
+      if (p.div) {
+        var div = document.createElement('div'); div.className = 'rm-stage-div';
+        div.innerHTML = '<div class="rm-stage-name">' + esc(p.div.name) + '</div><div class="rm-stage-sub">' + esc(p.div.sub) + '</div>';
+        rowsEl.appendChild(div);
+      }
+
+      var row = document.createElement('div'); row.className = 'rm-row' + (p.group === 'gate' ? ' rm-row--gate' : '');
+
+      var tab = document.createElement('button');
+      tab.type = 'button'; tab.className = 'rm-tab'; tab.dataset.tab = p.id;
+      tab.style.setProperty('--tab', p.color);
+      tab.innerHTML =
+        '<span><span class="rm-tab-name">' + (p.num ? esc(p.num) + ' · ' : '') + esc(p.name) + '</span>' +
+        '<span class="rm-tab-meta">' + esc(p.duration) + '</span></span>' +
+        '<svg class="rm-tab-arrow" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3 L11 8 L6 13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      tab.addEventListener('click', function () { select(p.id); });
+
+      var track = document.createElement('div'); track.className = 'rm-track';
+      var gcol = document.createElement('div'); gcol.className = 'rm-gatecol'; track.appendChild(gcol);
+
+      var bar = document.createElement('button'); bar.type = 'button'; bar.dataset.bar = p.id;
+      if (p.group === 'gate') {
+        bar.className = 'rm-bar rm-bar--gate';
+        bar.innerHTML = '<span>6&ndash;24 mo</span>';
+      } else {
+        bar.className = 'rm-bar' + (p.ongoing ? ' rm-ongoing' : '');
+        bar.style.background = p.color;
+        bar.innerHTML = '<span>' + esc(p.num) + '</span>';
+      }
+      bar.addEventListener('click', function () { select(p.id); });
+      track.appendChild(bar);
+      bars[p.id] = bar;
+
+      row.appendChild(tab); row.appendChild(track); rowsEl.appendChild(row);
+    });
+
+    function layout() {
+      phases.forEach(function (p) {
+        var bar = bars[p.id]; if (!bar) return;
+        if (p.group === 'gate') { bar.style.left = GZ[0] + '%'; bar.style.width = (GZ[1] - GZ[0]) + '%'; return; }
+        if (p.z === 'v') { bar.style.left = pv(p.r[0]) + '%'; bar.style.width = (pv(p.r[1]) - pv(p.r[0])) + '%'; }
+        else { var r = p[scenario]; bar.style.left = pd(r[0]) + '%'; bar.style.width = (pd(r[1]) - pd(r[0])) + '%'; }
+      });
+      var d = document.getElementById('rmDeliv'); if (d) d.textContent = SCN[scenario].deliv;
+    }
+
+    // Scenario toggle
+    var toggle = document.getElementById('rmToggle');
+    toggle.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      scenario = b.dataset.scn;
+      toggle.querySelectorAll('button').forEach(function (x) { x.classList.toggle('is-active', x === b); });
+      layout();
+    });
+
+    // Panel
+    var panel = document.getElementById('rmPanel');
+    var nameEl = document.getElementById('rmName');
+    var rangeEl = document.getElementById('rmRange');
+    var stageEl = document.getElementById('rmStage');
+    var descEl = document.getElementById('rmDesc');
+    var itemsEl = document.getElementById('rmItems');
+    var roleEl = document.getElementById('rmRole');
+    var gateSlot = document.getElementById('rmGateSlot');
+    var prevBtn = document.getElementById('rmPrev');
+    var nextBtn = document.getElementById('rmNext');
+    var prevName = document.getElementById('rmPrevName');
+    var nextName = document.getElementById('rmNextName');
+
+    prevBtn.addEventListener('click', function () { var i = idx(activeId); if (i > 0) select(phases[i-1].id, true); });
+    nextBtn.addEventListener('click', function () { var i = idx(activeId); if (i > -1 && i < phases.length-1) select(phases[i+1].id, true); });
+
+    var activeId = null, first = true;
+
+    function select(id, scrollTo) {
+      if (id === activeId) return;
+      var p = phases.find(function (x) { return x.id === id; }); if (!p) return;
+
+      Object.keys(bars).forEach(function (k) { bars[k].classList.toggle('is-active', k === id); });
+      document.querySelectorAll('.rm-tab').forEach(function (t) { t.classList.toggle('is-active', t.dataset.tab === id); });
+
+      var swap = function () {
+        panel.style.borderLeftColor = p.color;
+        nameEl.textContent = (p.num ? p.num + ' · ' : '') + p.name;
+        rangeEl.textContent = p.duration;
+        stageEl.textContent = p.stage;
+        stageEl.style.color = p.color;
+        descEl.textContent = p.desc;
+
+        itemsEl.innerHTML = '';
+        p.items.forEach(function (it) {
+          var li = document.createElement('li'); li.className = 'rm-item';
+          li.innerHTML = '<span class="rm-dot" style="background:' + p.color + '"></span><span class="rm-item-text">' + esc(it) + '</span>';
+          itemsEl.appendChild(li);
+        });
+        roleEl.textContent = p.role;
+
+        gateSlot.innerHTML = '';
+        if (p.gate) {
+          var g = document.createElement('div');
+          g.className = 'rm-gate ' + (p.gate.kind === 'go' ? 'rm-gate--go' : 'rm-gate--caution');
+          g.innerHTML = '<span class="rm-gate-label">' + (p.gate.kind === 'go' ? 'Go' : 'Watch') + '</span>' +
+            '<b>' + esc(p.gate.title) + '.</b> ' + esc(p.gate.text);
+          gateSlot.appendChild(g);
+        }
+
+        var i = idx(id);
+        if (i > 0) { prevBtn.classList.remove('is-hidden'); prevName.textContent = phases[i-1].name; prevName.style.color = phases[i-1].color; }
+        else prevBtn.classList.add('is-hidden');
+        if (i < phases.length - 1) { nextBtn.classList.remove('is-hidden'); nextName.textContent = phases[i+1].name; nextName.style.color = phases[i+1].color; }
+        else nextBtn.classList.add('is-hidden');
+
+        requestAnimationFrame(function () { panel.classList.remove('is-swapping'); });
+      };
+
+      if (first) { swap(); first = false; }
+      else { panel.classList.add('is-swapping'); setTimeout(swap, 170); }
+
+      activeId = id;
+      if (scrollTo) {
+        var rect = panel.getBoundingClientRect();
+        if (rect.top < 0 || rect.top > window.innerHeight * 0.4) window.scrollTo({ top: window.scrollY + rect.top - 24, behavior: 'smooth' });
+      }
+    }
+
+    function idx(id) { return phases.findIndex(function (x) { return x.id === id; }); }
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]; }); }
+
+    layout();
+    select('pc');
+  })();
+</script>
+</body>
+</html>
