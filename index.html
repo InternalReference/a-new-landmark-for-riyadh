@@ -11,16 +11,17 @@
     position: relative; z-index: 2;   /* sit above the cover video/scrim, like the other cover text */
     font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", "Traditional Arabic", "Times New Roman", serif;
     font-size: clamp(3.6rem, 10vw, 8rem);
-    line-height: 1.1;
+    line-height: 1.4;
     color: var(--ink);
     font-weight: 500;
     margin: 0;
+    padding-bottom: 0.12em;   /* room below the kasra / descenders at every size */
     direction: rtl;
     text-align: center;
   }
   /* small gold romanised name, tucked under the Arabic title */
   .cover .tower-name-en {
-    position: relative; z-index: 2; margin: 10px 0 0;
+    position: relative; z-index: 2; margin: clamp(8px, 1.6vw, 14px) 0 0;
     font-size: clamp(0.8rem, 1.4vw, 1rem); letter-spacing: 0.3em;
     text-transform: uppercase; color: var(--gold); font-weight: 700;
   }
@@ -39,7 +40,7 @@
 
   <div class="brand">Prepared by <b>External&nbsp;Reference</b></div>
 
-  <p class="tower-name-ar" lang="ar" dir="rtl">برج فطرة</p>
+  <p class="tower-name-ar" lang="ar" dir="rtl">برج فِطرة</p>
   <p class="tower-name-en">Burj Fitrah</p>
   <h1>A New Landmark <span class="em">for Riyadh</span></h1>
   <div class="rule"></div>
