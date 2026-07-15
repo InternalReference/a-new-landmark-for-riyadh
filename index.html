@@ -3,8 +3,24 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Riyadh Tower · Vision, Plan, Team · External Reference</title>
+<title>Burj Fitrah · Vision, Plan, Team · External Reference</title>
 <link rel="stylesheet" href="css/style.css" />
+<style>
+  /* ===== Tower name on the cover (added above the existing hero line) ===== */
+  .cover .tower-name-ar {
+    position: relative; z-index: 2;   /* sit above the cover video/scrim, like the other cover text */
+    font-family: "Amiri", "Scheherazade New", "Noto Naskh Arabic", "Traditional Arabic", "Times New Roman", serif;
+    font-size: clamp(3.6rem, 10vw, 8rem);
+    line-height: 1.1;
+    color: var(--ink);
+    font-weight: 500;
+    margin: 0;
+    direction: rtl;
+    text-align: center;
+  }
+  /* the existing line, kept on ONE line as the supporting descriptor under the name */
+  .cover h1 { font-size: clamp(1.5rem, 3.6vw, 3rem); margin-top: 66px; white-space: nowrap; max-width: none; }
+</style>
 </head>
 <body>
 
@@ -17,8 +33,8 @@
 
   <div class="brand">Prepared by <b>External&nbsp;Reference</b></div>
 
-  <h1>A Landmark <span class="em">for Riyadh</span></h1>
-  <p class="subtitle">A supertall for Riyadh · Vision · Plan · Team</p>
+  <p class="tower-name-ar" lang="ar" dir="rtl">برج فطرة</p>
+  <h1>A New Landmark <span class="em">for Riyadh</span></h1>
   <div class="rule"></div>
 
   <div class="prepared">Confidential &nbsp;·&nbsp; <b>2026</b></div>

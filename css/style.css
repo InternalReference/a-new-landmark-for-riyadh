@@ -776,6 +776,32 @@ a { color: inherit; }
 .points.compact .psub { font-size: 0.98rem; }
 .points.compact .pbody { font-size: 0.85rem; margin-top: 2px; }
 
+/* =========================================================================
+   HEALTH slide (fifth requirement) — five-verb row with an offering tag
+   ========================================================================= */
+.cards.c5 { grid-template-columns: repeat(5, 1fr); }
+.cards.c5 .card { padding: 22px 18px; }
+.cards.c5 .card p { font-size: 0.9rem; }
+.card .offer {
+  margin: 14px 0 0;
+  padding-top: 11px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--green);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.card .offer span {
+  display: block;
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+@media (max-width: 900px) { .cards.c5 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 560px) { .cards.c5 { grid-template-columns: 1fr; } }
+
 /* case studies: scrollable grid, hide filtering, category explainer, crop control */
 .cs-scroll { max-height: 54vh; overflow-y: auto; padding-right: 8px; }
 .cs-card.hide { display: none; }
